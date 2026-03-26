@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Colores de marca NextStop */
+  --color-stop-navy: #1e3a8a;    /* Azul marino profesional */
+  --color-stop-accent: #f97316;  /* Naranja para botones de acción */
+  --color-stop-slate: #475569;   /* Gris para textos secundarios */
+
+  /* Ajustes de fondo y texto */
+  --color-background: #f8fafc;   /* Un blanco ligeramente grisáceo muy elegante */
+  --color-foreground: #0f172a;   /* Casi negro para lectura fácil */
+}
+
+/* Reset básico para que el fondo siempre sea el correcto */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
