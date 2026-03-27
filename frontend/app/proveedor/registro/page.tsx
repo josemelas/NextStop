@@ -71,7 +71,7 @@ export default function RegisterProvider() {
               </p>
             </div>
 
-            <button type="submit" className="w-full bg-slate-900 hover:bg-[#3d6331] text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-slate-200 mt-2">
+            <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-slate-200 mt-2">
               Crear Cuenta de Agencia
             </button>
           </form>
