@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'usuarios',
-    'itinerarios',
+    'vuelos',
     'favoritos',
     'historial',
     'logs',
@@ -151,7 +151,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],+
+    ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
