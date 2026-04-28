@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # Django REST Framework
     'rest_framework',
     'corsheaders',
+    'rest_framework_simplejwt',
 
     # Apps propias
     'apps.core',
@@ -84,7 +85,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DATABASE_NAME', 'nextstop_db'),
         'USER': os.getenv('DATABASE_USER', 'root'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'tu_password'),

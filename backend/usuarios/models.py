@@ -10,7 +10,7 @@ class rol(models.Model):
     def __str__(self):
         return self.nombre
 
-class usuario(models.Model):
+class Usuario(models.Model):
     nombre = models.CharField(max_lenght = 100)
     email = models.CharField(max_lenght=150)
     password_hash = models.CharField(max_lenght=60)
@@ -24,15 +24,15 @@ class usuario(models.Model):
     def __str__(self):
         return self.nombre
 
-class usario_rol(models.Model):
-    usario = models.ForeignKey(usuario, on_delete=models.CASCADE)
+class Usario_rol(models.Model):
+    usario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     rol = models.ForeignKey(rol, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('usuario','rol')
 
-class verificacion(models.Model):
-    usuario = models.ForeignKey(usuario, on_delete=models.CASCADE,)
+class Verificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE,)
     codigo = models.CharField(max_lenght=4)
     token = models.CharField(max_lenght=100)
     expiracion = models.DateTimeField()
@@ -43,8 +43,8 @@ class verificacion(models.Model):
     def __str__(self):
         return f"Verificacion de {self.usuario.email}"
 
-class sesion (models.Model):
-    usuario = models.ForeignKey(usuario, on_delete=models.CASCADE)
+class Sesion (models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     ip_origen = models.CharField(max_lenght=45)
     user_agent = models.CharField(max_lenght=255)
     fecha_inicio = models.DateTimeField()
