@@ -25,7 +25,7 @@ class Usuario(models.Model):
         return self.nombre
 
 class Usario_rol(models.Model):
-    usario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     rol = models.ForeignKey(rol, on_delete=models.CASCADE)
 
     class Meta:
