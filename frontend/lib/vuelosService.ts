@@ -1,26 +1,34 @@
-const API_URL = "https://seal-app-u4egd.ondigitalocean.app/apis_externas";
+// URL Base del servidor de Brian
+const API_URL = "https://nextstop-app-u9cvd.ondigitalocean.app/api/vuelos";
 
 export const vuelosService = {
-  // NUEVO: Busca ciudades o aeropuertos para el autocompletado
+  // 1. Esta es para las sugerencias de ciudades (Ubicaciones)
   buscarUbicaciones: async (query: string) => {
     try {
-      const res = await fetch(`${API_URL}/locations/?query=${query}`);
+      // Ruta: /api/vuelos/locations/
+      const res = await fetch(`${API_URL}/locations/?query=${encodeURIComponent(query)}`);
       if (!res.ok) return [];
-      return await res.json(); // Devuelve [{nombre, codigo, tipo}, ...]
+      return await res.json();
     } catch (error) {
-      console.error("Error buscando ubicaciones:", error);
+      console.error("Error en autocompletado:", error);
       return [];
     }
   },
 
+  // 2. Esta es para buscar los vuelos reales
   buscarVuelosReales: async (origen: string, destino: string, fecha: string) => {
     try {
-      const url = `${API_URL}/vuelos/?origen=${origen}&destino=${destino}&fecha_salida=${fecha}`;
+      // Ruta: /api/vuelos/vuelos/
+      const url = `${API_URL}/vuelos/?origen=${encodeURIComponent(origen)}&destino=${encodeURIComponent(destino)}&fecha_salida=${fecha}`;
+
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Error en el servidor");
+      if (!res.ok) throw new Error("Error al buscar vuelos");
       const data = await res.json();
+
+      // Retornamos los datos (si vienen en data.data o directo)
       return data.data || data;
     } catch (error) {
+      console.error("Error en búsqueda de vuelos:", error);
       return { error: true };
     }
   }
