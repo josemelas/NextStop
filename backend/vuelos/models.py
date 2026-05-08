@@ -38,7 +38,7 @@ class Reserva(models.Model):
         (CANCELADO, 'Cancelado'),
     ]
     estado_pago = models.CharField(
-        max_length=1,
+        max_length=20,
         choices=ESTADO_OPCIONAL,
         default=PENDIENTE,
     )
