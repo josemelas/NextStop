@@ -13,7 +13,7 @@ class rol(models.Model):
 class Usuario(models.Model):
     nombre = models.CharField(max_length = 100)
     email = models.CharField(max_length=150)
-    password_hash = models.CharField(max_length=60)
+    password_hash = models.CharField(max_length=255)
     telefono = models.CharField(max_length=20)
     idioma_preferido = models.CharField(max_length=10, default='es')
     moneda_preferida = models.CharField(max_length=10, default='MXN')
