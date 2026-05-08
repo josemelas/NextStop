@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { User, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Lock, Phone, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/authService';
@@ -9,6 +9,7 @@ import { authService } from '@/lib/authService';
 export default function ClientRegister() {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState(''); // Estado para el nuevo campo
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +22,6 @@ export default function ClientRegister() {
     e.preventDefault();
     setError("");
 
-    // 1. Validación de interfaz: No enviamos nada si no coinciden
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
@@ -30,21 +30,22 @@ export default function ClientRegister() {
     setIsLoading(true);
 
     try {
-      // 2. Llamada al backend (DigitalOcean) vía authService
+      // Enviamos el objeto completo incluyendo el teléfono
       const data = await authService.registrar({
         nombre,
         email,
+        telefono, // Nuevo dato enviado al servicio
         password
       });
 
-      // 3. Verificación de éxito según el backend de Brian
       if (data && data.mensaje) {
         setSuccess(true);
         setNombre('');
+        setEmail('');
+        setTelefono('');
         setPassword('');
         setConfirmPassword('');
       } else {
-        // 4. Captura errores de validación (ej: Correo ya registrado)
         const errorMsg = data.error || (data.email ? data.email[0] : "No se pudo crear la cuenta. Revisa los datos.");
         setError(errorMsg);
       }
@@ -120,6 +121,22 @@ export default function ClientRegister() {
                 </div>
               </div>
 
+              {/* NUEVO CAMPO: TELÉFONO */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-800 ml-1">Número de Teléfono</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="tel"
+                    value={telefono}
+                    onChange={(e) => setTelefono(e.target.value)}
+                    placeholder="Ingresa numero telefonico"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-800 ml-1">Contraseña</label>
                 <div className="relative">
@@ -133,7 +150,6 @@ export default function ClientRegister() {
                     required
                     minLength={8}
                   />
-                  {/* BOTÓN OJO - Con z-10 para asegurar que sea clickeable */}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
