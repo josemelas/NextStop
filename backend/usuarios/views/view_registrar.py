@@ -35,7 +35,7 @@ class RegistrarUsuario(APIView):
             usuario = serializer.save(email_verificado=True)
             try:
                 rol_cliente = Rol.objects.get(nombre='Cliente')
-                Usario_rol.objects.create(
+                Usuario_rol.objects.create(
                     usuario=usuario,
                     rol=rol_cliente
                 )

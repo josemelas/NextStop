@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.hashers import check_password
-from models import Rol
 from ..models import Usuario, Usuario_rol
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
