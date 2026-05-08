@@ -1,11 +1,10 @@
-// Eliminamos /api/usuarios para que coincida con el urls.py de Brian
-const API_URL = "https://seal-app-u4egd.ondigitalocean.app";
+// Definimos la base con el prefijo que Brian nos marcó
+const API_URL = "https://seal-app-u4egd.ondigitalocean.app/api/usuarios";
 
 export const authService = {
-  // 1. Registro
+  // 1. Registro: La URL final será API_URL + /registrar/
   registrar: async (datos: any) => {
     try {
-      // La ruta real es https://seal-app-u4egd.ondigitalocean.app/registrar/
       const res = await fetch(`${API_URL}/registrar/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -17,10 +16,9 @@ export const authService = {
     }
   },
 
-  // 2. Login
+  // 2. Login: La URL final será API_URL + /login/
   login: async (email: string, pass: string) => {
     try {
-      // La ruta real es https://seal-app-u4egd.ondigitalocean.app/login/
       const res = await fetch(`${API_URL}/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,12 +39,13 @@ export const authService = {
       }
       return { ok: false, data };
     } catch (error) {
-      return { ok: false, data: { error: "Error de red: Verifica tu conexión" } };
+      return { ok: false, data: { error: "Error de red" } };
     }
   },
 
-  // 3. Validar Token (Vemos que Brian lo tiene como 'validar-token/')
+  // 3. Validar Token
   verificarSesion: async () => {
+    if (typeof window === "undefined") return null;
     const token = localStorage.getItem("token_access");
     if (!token) return null;
 
