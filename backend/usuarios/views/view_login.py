@@ -58,7 +58,7 @@ class LoginUsuario(APIView):
 
         try:
             relacion = Usuario_rol.objects.get(usuario=usuario)
-            nombre_rol = relacion.Rol.nombre
+            nombre_rol = relacion.rol.nombre
         except Usuario_rol.DoesNotExist:
             nombre_rol='Cliente'
 
