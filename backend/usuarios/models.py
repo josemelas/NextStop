@@ -44,6 +44,9 @@ class Verificacion(models.Model):
 
     def expirado(self):
         return timezone.now() > self.expiracion or self.usado
+    class Meta:
+        managed = False
+        db_table = 'verificacion'
     def __str__(self):
         return f"Verificacion de {self.usuario.email}"
 
