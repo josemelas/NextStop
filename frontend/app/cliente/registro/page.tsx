@@ -1,8 +1,49 @@
-import React from 'react';
-import { User, Mail, Lock, Eye, ArrowLeft } from 'lucide-react';
+"use client";
+
+import React, { useState } from 'react';
+import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { authService } from '@/lib/authService';
 
 export default function ClientRegister() {
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Nuevo estado
+  const [showPassword, setShowPassword] = useState(false); // Estado para ver/ocultar
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validación de coincidencia de contraseñas
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const data = await authService.registrar({ nombre, email, password });
+      if (data.mensaje) {
+        setSuccess(true);
+      } else {
+        const errorMsg = data.error || (data.email ? data.email[0] : "Error en el registro");
+        setError(errorMsg);
+      }
+    } catch (err) {
+      setError("No se pudo conectar con el servidor de NextStop.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 py-12">
       <div className="w-full max-w-[500px]">
@@ -15,43 +56,125 @@ export default function ClientRegister() {
             </p>
           </div>
 
-          <form className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-800 ml-1">Nombre Completo</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input type="text" placeholder="Tu nombre" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent outline-none transition-all" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-800 ml-1">Correo Electrónico</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input type="email" placeholder="tu@correo.com" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent outline-none transition-all" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-800 ml-1">Contraseña</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input type="password" placeholder="Mínimo 8 caracteres" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent outline-none transition-all" />
-                <Eye className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 cursor-pointer" />
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 py-2">
-              <input type="checkbox" className="mt-1 w-5 h-5 accent-stop-accent cursor-pointer" />
-              <p className="text-sm text-slate-600">
-                Acepto los <span className="text-stop-navy font-bold cursor-pointer hover:underline">términos y condiciones</span> y la <span className="text-stop-navy font-bold cursor-pointer hover:underline">política de privacidad</span>
+          {success ? (
+            <div className="bg-green-50 border border-green-200 p-8 rounded-[2rem] text-center animate-in zoom-in duration-300">
+              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-green-900 mb-2">¡Registro casi listo!</h3>
+              <p className="text-green-700 font-medium">
+                Hemos enviado un código de verificación a <span className="font-bold">{email}</span>.
+                Revise su bandeja de entrada para completar el proceso.
               </p>
+              <button
+                onClick={() => router.push('/cliente/login')}
+                className="mt-6 text-green-800 font-bold hover:underline"
+              >
+                Ir al inicio de sesión
+              </button>
             </div>
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-5">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium">
+                  <AlertCircle className="w-5 h-5" />
+                  {error}
+                </div>
+              )}
 
-            <button type="submit" className="w-full bg-stop-accent hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-100 mt-2">
-              Crear mi cuenta gratuita
-            </button>
-          </form>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-800 ml-1">Nombre Completo</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Tu nombre"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent outline-none transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-800 ml-1">Correo Electrónico</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@correo.com"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent outline-none transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-800 ml-1">Contraseña</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Mínimo 8 caracteres"
+                    className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent outline-none transition-all"
+                    required
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-800 ml-1">Confirmar Contraseña</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repite tu contraseña"
+                    className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all ${
+                      confirmPassword && password !== confirmPassword
+                      ? 'border-red-300 ring-red-100'
+                      : 'border-slate-200 focus:ring-stop-accent/20 focus:border-stop-accent'
+                    }`}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 py-2">
+                <input type="checkbox" required className="mt-1 w-5 h-5 accent-stop-accent cursor-pointer" />
+                <p className="text-sm text-slate-600">
+                  Acepto los <span className="text-stop-navy font-bold cursor-pointer hover:underline">términos y condiciones</span> y la <span className="text-stop-navy font-bold cursor-pointer hover:underline">política de privacidad</span>
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-stop-accent hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-100 mt-2 flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creando cuenta...
+                  </>
+                ) : (
+                  "Crear mi cuenta gratuita"
+                )}
+              </button>
+            </form>
+          )}
 
           <div className="mt-10 pt-8 border-t border-slate-100 text-center">
             <p className="text-slate-600 font-medium">

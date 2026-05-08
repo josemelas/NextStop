@@ -1,37 +1,40 @@
 "use client";
 
 import React, { useState } from 'react';
-import { UserCircle, ArrowLeft, Lock, Mail, AlertCircle } from 'lucide-react';
+import { UserCircle, ArrowLeft, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/lib/authService';
 
 export default function ClientLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Nuevo: Ver/Ocultar
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-    const CLIENTE_EMAIL = "julian123@hotmail.com";
-    const CLIENTE_PASS = "Jivz2004";
-    const ADMIN_EMAIL = "jose_admin@nextstop.com";
-    const ADMIN_PASS = "NextStop2026";
-
-    if (email === CLIENTE_EMAIL && password === CLIENTE_PASS) {
-      // Cambio de ruta a menupr
-      router.push('/cliente/menupr');
-    } else if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
-      router.push('/admin/dashboard');
-    } else {
-      setError(true);
+    try {
+      const { ok, data } = await authService.login(email, password);
+      if (ok) {
+        router.push('/cliente/menupr');
+      } else {
+        setError(data.error || "Ocurrió un error al iniciar sesión");
+      }
+    } catch (err) {
+      setError("No se pudo conectar con el servidor. Inténtalo más tarde.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      {/* ... (el resto del código del login se mantiene igual) ... */}
       <Link
         href="/"
         className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 hover:text-stop-accent transition-colors font-medium"
@@ -52,9 +55,9 @@ export default function ClientLogin() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-top-2">
                 <AlertCircle className="w-5 h-5" />
-                Correo o contraseña incorrectos
+                {error}
               </div>
             )}
 
@@ -69,6 +72,7 @@ export default function ClientLogin() {
                   placeholder="tucorreo@ejemplo.com"
                   className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent transition-all"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -81,21 +85,37 @@ export default function ClientLogin() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Ingresa tu Contraseña"
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent transition-all"
+                  className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stop-accent/20 focus:border-stop-accent transition-all"
                   required
+                  disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-stop-accent text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-100 mt-2"
+              disabled={isLoading}
+              className="w-full bg-stop-accent text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-100 mt-2 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Comenzar mi viaje
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Verificando...
+                </>
+              ) : (
+                "Comenzar mi viaje"
+              )}
             </button>
           </form>
 
