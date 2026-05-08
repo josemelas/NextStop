@@ -33,7 +33,7 @@ class LoginUsuario(APIView):
             print(f"Error al verificar el reCAPTCHA: {e}")
             return False
 
-    def pos(self, request):
+    def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
         recaptcha_token = request.data.get('recaptcha_token')
