@@ -9,7 +9,7 @@ import { authService } from '@/lib/authService';
 export default function ClientLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Nuevo: Ver/Ocultar
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -20,14 +20,18 @@ export default function ClientLogin() {
     setIsLoading(true);
 
     try {
+      // Llamada real al backend de Brian vía authService
       const { ok, data } = await authService.login(email, password);
+
       if (ok) {
+        // Redirección exitosa al menú principal
         router.push('/cliente/menupr');
       } else {
+        // Mostramos el error real del backend (ej: "Correo no verificado" o "Contraseña incorrecta")
         setError(data.error || "Ocurrió un error al iniciar sesión");
       }
     } catch (err) {
-      setError("No se pudo conectar con el servidor. Inténtalo más tarde.");
+      setError("No se pudo conectar con el servidor de NextStop.");
     } finally {
       setIsLoading(false);
     }
@@ -56,8 +60,8 @@ export default function ClientLogin() {
           <form onSubmit={handleLogin} className="space-y-6">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-top-2">
-                <AlertCircle className="w-5 h-5" />
-                {error}
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -96,7 +100,7 @@ export default function ClientLogin() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none z-10 p-1"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -111,7 +115,7 @@ export default function ClientLogin() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Verificando...
+                  Iniciando sesión...
                 </>
               ) : (
                 "Comenzar mi viaje"

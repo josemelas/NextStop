@@ -30,29 +30,25 @@ export default function ClientRegister() {
     setIsLoading(true);
 
     try {
-      // 2. Llamada al backend de Brian (DigitalOcean)
-      // Este método ya incluye el recaptcha_token: "fake-token" internamente
+      // 2. Llamada al backend (DigitalOcean) vía authService
       const data = await authService.registrar({
         nombre,
         email,
         password
       });
 
-      // 3. Verificación de éxito según el 'view_registrar.py' de Brian
+      // 3. Verificación de éxito según el backend de Brian
       if (data && data.mensaje) {
         setSuccess(true);
-        // Limpiamos los campos tras el éxito
         setNombre('');
         setPassword('');
         setConfirmPassword('');
       } else {
-        // 4. Manejo de errores específicos del backend (ej: correo duplicado)
-        // Brian configuró errores en 'error' o directamente en el nombre del campo
+        // 4. Captura errores de validación (ej: Correo ya registrado)
         const errorMsg = data.error || (data.email ? data.email[0] : "No se pudo crear la cuenta. Revisa los datos.");
         setError(errorMsg);
       }
     } catch (err) {
-      // Error de red o servidor caído
       setError("Error crítico: No hay conexión con el servidor de NextStop.");
     } finally {
       setIsLoading(false);
@@ -137,6 +133,7 @@ export default function ClientRegister() {
                     required
                     minLength={8}
                   />
+                  {/* BOTÓN OJO - Con z-10 para asegurar que sea clickeable */}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
