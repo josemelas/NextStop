@@ -53,7 +53,7 @@ class VuelosView(APIView):
                         }
                     ],
                     "price": {
-                        "total": "14500.00",
+                        "total": "4500.00",
                         "currency": "MXN"
                     }
                 },
@@ -77,7 +77,7 @@ class VuelosView(APIView):
                         }
                     ],
                     "price": {
-                        "total": "12350.50",
+                        "total": "1350.50",
                         "currency": "MXN"
                     }
                 }
