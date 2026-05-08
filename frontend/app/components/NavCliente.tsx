@@ -1,16 +1,15 @@
 "use client";
 
 import React from 'react';
-import { Plane, Search, Ticket, Heart, LogOut, History, User, ShieldCheck } from 'lucide-react';
+import { Plane, Search, Ticket, Heart, LogOut, History, User, ShieldCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { isAdmin } from '@/lib/adminGuard'; // Asegúrate de crear este archivo
+import { isAdmin } from '@/lib/adminGuard';
 
 export function SidebarCliente() {
   const pathname = usePathname();
   const showAdmin = isAdmin();
 
-  // "Explorar Destinos" ha sido eliminado según tus instrucciones
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
     { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
@@ -18,6 +17,11 @@ export function SidebarCliente() {
     { name: 'Favoritos', href: '/cliente/menupr/favoritos', icon: Heart },
     { name: 'Mi Perfil', href: '/cliente/menupr/perfil', icon: User },
   ];
+
+  // Si es administrador, añadimos la gestión de usuarios a la lista principal
+  if (showAdmin) {
+    links.push({ name: 'Gestión de Usuarios', href: '/admin/usuarios', icon: Users });
+  }
 
   return (
     <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
@@ -47,28 +51,28 @@ export function SidebarCliente() {
           </Link>
         ))}
 
-        {/* BOTÓN DE ADMINISTRADOR - Solo visible para José y Brian */}
+        {/* BOTÓN DE PANEL PRINCIPAL ADMIN - Solo visible para José y Brian */}
         {showAdmin && (
-        <div className="pt-6 mt-6 border-t border-white/10 px-2">
-        <Link
-            href="/admin/dashboard"
-            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
-            pathname === '/admin/dashboard'
-            ? 'bg-orange-500 text-white'
-            : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
-        }`}
-        >
-        <ShieldCheck className="w-5 h-5" />
-        PANEL ADMIN
+          <div className="pt-6 mt-6 border-t border-white/10 px-2">
+            <Link
+              href="/admin/dashboard"
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
+                pathname === '/admin/dashboard'
+                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
+              }`}
+            >
+              <ShieldCheck className="w-5 h-5" />
+              PANEL PRINCIPAL ADMIN
             </Link>
-        </div>
+          </div>
         )}
       </nav>
 
       <div className="p-6 mt-auto border-t border-white/5">
         <Link
           href="/"
-          onClick={() => localStorage.clear()} // Limpia sesión al salir
+          onClick={() => localStorage.clear()}
           className="w-full flex items-center gap-4 text-slate-500 hover:text-red-400 p-4 rounded-2xl font-bold transition-all"
         >
           <LogOut className="w-5 h-5" /> Cerrar Sesión
@@ -79,7 +83,6 @@ export function SidebarCliente() {
 }
 
 export function HeaderUsuario() {
-  // Nota: En una versión final, aquí podrías obtener el nombre del localStorage
   return (
     <header className="flex justify-between items-center mb-12">
       <div className="invisible italic text-slate-400">Navegación</div>
