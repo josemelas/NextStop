@@ -11,12 +11,12 @@ class rol(models.Model):
         return self.nombre
 
 class Usuario(models.Model):
-    nombre = models.CharField(max_lenght = 100)
-    email = models.CharField(max_lenght=150)
-    password_hash = models.CharField(max_lenght=60)
-    telefono = models.CharField(max_lenght=20)
-    idioma_preferido = models.CharField(max_lenght=10, default='es')
-    moneda_preferida = models.CharField(max_lenght=10, default='MXN')
+    nombre = models.CharField(max_length = 100)
+    email = models.CharField(max_length=150)
+    password_hash = models.CharField(max_length=60)
+    telefono = models.CharField(max_length=20)
+    idioma_preferido = models.CharField(max_length=10, default='es')
+    moneda_preferida = models.CharField(max_length=10, default='MXN')
     email_verificado = models.BooleanField(default=False)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
