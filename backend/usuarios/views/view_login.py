@@ -55,17 +55,20 @@ class LoginUsuario(APIView):
             return Response({'error': 'Correo no verificado'}, status=status.HTTP_400_BAD_REQUEST)
         if not check_password(password, usuario.password_hash):
             return Response({'error': 'Contraseña incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            relacion = Usuario_rol.objects.get(usuario=usuario)
-            nombre_rol = relacion.rol.nombre
-        except Usuario_rol.DoesNotExist:
-            nombre_rol='Cliente'
+        roles_usuario = Usuario_rol.objects.filter(usuario=usuario).values_list('rol__nombre', flat=True)
+        lista_roles = list(roles_usuario)
+        if 'Administrador' in lista_roles:
+            nombre_rol = 'Administrador'
+        elif 'Empresa' in lista_roles:
+            nombre_rol = 'Empresa'
+        else:
+            nombre_rol = 'Cliente'
 
         refresh = RefreshToken.for_user(usuario)
         refresh["user_id"] = usuario.id
         refresh["email"] = usuario.email
         refresh["rol"] = nombre_rol
+        
         access = refresh.access_token
         access["user_id"] = usuario.id
         access["email"] = usuario.email
