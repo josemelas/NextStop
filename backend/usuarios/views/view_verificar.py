@@ -67,7 +67,7 @@ class ReenviarVerificacion(APIView):
             token=token,
         )
 
-        link_verificacion = f'http://localhost:8000/api/usuarios/verificar/{token}'
+        link_verificacion = f'https://seal-app-u4egd.ondigitalocean.app/api/usuarios/verificar/{token}'
         tiempo = 1
 
         mensaje = f"""
