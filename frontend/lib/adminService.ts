@@ -1,7 +1,7 @@
 // lib/adminService.ts
 
-// Usamos la URL exacta que te pasó Brian
-const API_URL = "https://seal-app-u4egd.ondigitalocean.app/api/usuarios/gestionar_usuarios/";
+//
+const API_URL = "https://seal-app-u4egd.ondigitalocean.app/api/usuarios/admin/gestion/";
 
 export const adminService = {
   // Obtener la lista real (GET)
