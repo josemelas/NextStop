@@ -34,30 +34,52 @@ class VuelosView(APIView):
 
             vuelos_emergencia = [
                 {
+                    "id": "1",
+                    "itineraries": [
+                        {
+                            "segments": [
+                                {
+                                    "carrierCode": "AM",  # Aeroméxico
+                                    "departure": {
+                                        "iataCode": origen,
+                                        "at": f"{fecha_salida}T08:30:00"
+                                    },
+                                    "arrival": {
+                                        "iataCode": destino,
+                                        "at": f"{fecha_salida}T10:45:00"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
                     "price": {
                         "total": "14500.00",
                         "currency": "MXN"
-                    },
+                    }
+                },
+                {
+                    "id": "2",
                     "itineraries": [
                         {
                             "segments": [
-                                {"carrierCode": "AM"}
+                                {
+                                    "carrierCode": "IB",  # Iberia
+                                    "departure": {
+                                        "iataCode": origen,
+                                        "at": f"{fecha_salida}T14:15:00"
+                                    },
+                                    "arrival": {
+                                        "iataCode": destino,
+                                        "at": f"{fecha_salida}T20:30:00"
+                                    }
+                                }
                             ]
                         }
-                    ]
-                },
-                {
+                    ],
                     "price": {
                         "total": "12350.50",
                         "currency": "MXN"
-                    },
-                    "itineraries": [
-                        {
-                            "segments": [
-                                {"carrierCode": "IB"}
-                            ]
-                        }
-                    ]
+                    }
                 }
             ]
             return Response(vuelos_emergencia, status=200)
