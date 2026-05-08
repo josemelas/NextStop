@@ -130,7 +130,7 @@ export default function ClientRegister() {
                     type="tel"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    placeholder="Ingresa numero telefonico"
+                    placeholder="Ingresa numero"
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
                     required
                   />
