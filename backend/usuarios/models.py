@@ -33,8 +33,8 @@ class Usario_rol(models.Model):
 
 class Verificacion(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE,)
-    codigo = models.CharField(max_lenght=4)
-    token = models.CharField(max_lenght=100)
+    codigo = models.CharField(max_length=4)
+    token = models.CharField(max_length=100)
     expiracion = models.DateTimeField()
     usado = models.BooleanField(default=False)
 
@@ -45,8 +45,8 @@ class Verificacion(models.Model):
 
 class Sesion (models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    ip_origen = models.CharField(max_lenght=45)
-    user_agent = models.CharField(max_lenght=255)
+    ip_origen = models.CharField(max_length=45)
+    user_agent = models.CharField(max_length=255)
     fecha_inicio = models.DateTimeField()
     fecha_fin = models.DateTimeField(null=True)
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
