@@ -13,6 +13,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'email_verificado', 'activo']
 
     def create(self, validated_data):
+        validated_data.setdefault('telefono','')
         validated_data.setdefault('idioma_preferido', 'es')
         validated_data.setdefault('moneda_preferida', 'MXN')
         return super().create (validated_data)
