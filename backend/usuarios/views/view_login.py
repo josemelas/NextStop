@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.hashers import check_password
-from ..models import Usuario
+from models import Rol
+from ..models import Usuario, Usuario_rol
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -56,17 +57,25 @@ class LoginUsuario(APIView):
         if not check_password(password, usuario.password_hash):
             return Response({'error': 'Contraseña incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            relacion = Usuario_rol.objects.get(usuario=usuario)
+            nombre_rol = relacion.Rol.nombre
+        except Usuario_rol.DoesNotExist:
+            nombre_rol='Cliente'
+
         refresh = RefreshToken.for_user(usuario)
         refresh["user_id"] = usuario.id
         refresh["email"] = usuario.email
+        refresh["rol"] = nombre_rol
         access = refresh.access_token
         access["user_id"] = usuario.id
         access["email"] = usuario.email
+        access["rol"] = nombre_rol
         return Response({
             'mensaje': 'Login exitoso',
             'token': {
                 'refresh': str(refresh),
-                'access': str(refresh.access_token),
+                'access': str(access),
             },
             'usuario': {
                 'id': usuario.id,
@@ -75,5 +84,6 @@ class LoginUsuario(APIView):
                 'telefono': usuario.telefono,
                 'idioma_preferido': usuario.idioma_preferido,
                 'moneda_preferida': usuario.moneda_preferida,
+                'rol': nombre_rol,
             }
         }, status=status.HTTP_200_OK)
