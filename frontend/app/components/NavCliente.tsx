@@ -1,16 +1,18 @@
 "use client";
 
 import React from 'react';
-import { Plane, Search, Ticket, Heart, LogOut, Compass, History, User } from 'lucide-react';
+import { Plane, Search, Ticket, Heart, LogOut, History, User, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { isAdmin } from '@/lib/adminGuard'; // Asegúrate de crear este archivo
 
 export function SidebarCliente() {
   const pathname = usePathname();
+  const showAdmin = isAdmin();
 
+  // "Explorar Destinos" ha sido eliminado según tus instrucciones
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
-    { name: 'Explorar Destinos', href: '/cliente/menupr/explorar', icon: Compass },
     { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
     { name: 'Mis Reservaciones', href: '/cliente/menupr/reservas', icon: History },
     { name: 'Favoritos', href: '/cliente/menupr/favoritos', icon: Heart },
@@ -44,10 +46,31 @@ export function SidebarCliente() {
             {item.name}
           </Link>
         ))}
+
+        {/* BOTÓN DE ADMINISTRADOR - Solo visible para José y Brian */}
+        {showAdmin && (
+        <div className="pt-6 mt-6 border-t border-white/10 px-2">
+        <Link
+            href="/admin/dashboard"
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
+            pathname === '/admin/dashboard'
+            ? 'bg-orange-500 text-white'
+            : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
+        }`}
+        >
+        <ShieldCheck className="w-5 h-5" />
+        PANEL ADMIN
+            </Link>
+        </div>
+        )}
       </nav>
 
       <div className="p-6 mt-auto border-t border-white/5">
-        <Link href="/" className="w-full flex items-center gap-4 text-slate-500 hover:text-red-400 p-4 rounded-2xl font-bold transition-all">
+        <Link
+          href="/"
+          onClick={() => localStorage.clear()} // Limpia sesión al salir
+          className="w-full flex items-center gap-4 text-slate-500 hover:text-red-400 p-4 rounded-2xl font-bold transition-all"
+        >
           <LogOut className="w-5 h-5" /> Cerrar Sesión
         </Link>
       </div>
@@ -56,14 +79,17 @@ export function SidebarCliente() {
 }
 
 export function HeaderUsuario() {
+  // Nota: En una versión final, aquí podrías obtener el nombre del localStorage
   return (
     <header className="flex justify-between items-center mb-12">
       <div className="invisible italic text-slate-400">Navegación</div>
       <div className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100">
-        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20">J</div>
+        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20">
+          J
+        </div>
         <div>
-          <p className="text-sm font-black text-slate-900">Julián Vz</p>
-          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
+          <p className="text-sm font-black text-slate-900">José Vallejo</p>
+          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Admin Gold</p>
         </div>
       </div>
     </header>
