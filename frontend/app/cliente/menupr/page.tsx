@@ -14,7 +14,7 @@ export default function BuscadorInteligente() {
   const [sugerenciasOrigen, setSugerenciasOrigen] = useState([]);
   const [sugerenciasDestino, setSugerenciasDestino] = useState([]);
   const [fecha, setFecha] = useState('');
-  const [vuelos, setVuelos] = useState([]);
+  const [vuelos, setVuelos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Lógica para autocompletar Origen
