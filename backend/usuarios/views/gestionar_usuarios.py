@@ -15,7 +15,7 @@ class GestionUsuariosAdminView(APIView):
             roles_asignados = Usuario_rol.objects.filter(usuario=u).values_list('rol__nombre', flat=True)
 
             lista_usuarios.append({
-                'id': u.id,
+                'id_usuario': u.id,
                 'nombre': u.nombre,
                 'email': u.email,
                 'activo': u.activo,
@@ -26,14 +26,14 @@ class GestionUsuariosAdminView(APIView):
         return Response(lista_usuarios, status=status.HTTP_200_OK)
 
     def put(self, request):
-        usuario_id = request.data.get('usuario_id')
+        id_usuario = request.data.get('id_usuario')
         nuevos_roles = request.data.get('roles')
 
-        if not usuario_id or nuevos_roles is None:
-            return Response({"error": "Faltan datos (usuario_id o roles)"}, status=status.HTTP_400_BAD_REQUEST)
+        if not id_usuario or nuevos_roles is None:
+            return Response({"error": "Faltan datos (id_usuario o roles)"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usuario = Usuario.objects.get(id=usuario_id)
+            usuario = Usuario.objects.get(id=id_usuario)
         except Usuario.DoesNotExist:
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
