@@ -49,19 +49,19 @@ export function SidebarCliente() {
 
         {/* BOTÓN DE ADMINISTRADOR - Solo visible para José y Brian */}
         {showAdmin && (
-          <div className="pt-6 mt-6 border-t border-white/10">
-            <Link
-              href="/admin/dashboard"
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all shadow-lg ${
-                pathname === '/admin/dashboard'
-                ? 'bg-orange-500 text-white shadow-orange-500/20'
-                : 'bg-slate-800 text-orange-400 hover:bg-slate-700'
-              }`}
-            >
-              <ShieldCheck className="w-5 h-5" />
-              PANEL ADMIN
+        <div className="pt-6 mt-6 border-t border-white/10 px-2">
+        <Link
+            href="/admin/dashboard"
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
+            pathname === '/admin/dashboard'
+            ? 'bg-orange-500 text-white'
+            : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
+        }`}
+        >
+        <ShieldCheck className="w-5 h-5" />
+        PANEL ADMIN
             </Link>
-          </div>
+        </div>
         )}
       </nav>
 
