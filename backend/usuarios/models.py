@@ -21,6 +21,10 @@ class Usuario(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 
+    class Meta:
+        managed = False
+        db_table = 'usuario'
+
     def __str__(self):
         return self.nombre
 
