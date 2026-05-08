@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from ..serializers import UsuarioSerializer
-from ..models import Usuario, Verificacion
+from ..models import Usuario, Verificacion, Rol, Usario_rol
 import random, uuid
 from django.core.mail import send_mail
 from django.conf import settings
@@ -33,6 +33,14 @@ class RegistrarUsuario(APIView):
         serializer = UsuarioSerializer(data=data)
         if serializer.is_valid():
             usuario = serializer.save(email_verificado=True)
+            try:
+                rol_cliente = Rol.objects.get(nombre='Cliente')
+                Usario_rol.objects.create(
+                    usuario=usuario,
+                    rol=rol_cliente
+                )
+            except Rol.DoesNotExist:
+                print("Advertencia El Rol CLiente no se encontro en la base de datos")
 
             """
                         codigo = random.randint(1000, 9999)

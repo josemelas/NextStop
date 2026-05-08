@@ -3,9 +3,14 @@ from django.utils import timezone
 from datetime import timedelta
 
 
-class rol(models.Model):
+class Rol(models.Model):
+    id = models.AutoField(primary_key=True, db_column='id_rol')
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=255)
+
+    class Meta:
+        managed = False
+        db_table = 'rol'
 
     def __str__(self):
         return self.nombre
@@ -31,7 +36,7 @@ class Usuario(models.Model):
 
 class Usario_rol(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    rol = models.ForeignKey(rol, on_delete=models.CASCADE)
+    rol = models.ForeignKey(Rol, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('usuario','rol')
