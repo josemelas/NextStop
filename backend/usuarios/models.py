@@ -11,6 +11,7 @@ class rol(models.Model):
         return self.nombre
 
 class Usuario(models.Model):
+    id = models.AutoField(primary_key=True, db_column='id_usuario')
     nombre = models.CharField(max_length = 100)
     email = models.CharField(max_length=150)
     password_hash = models.CharField(max_length=255)
