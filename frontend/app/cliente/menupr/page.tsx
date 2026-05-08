@@ -11,8 +11,8 @@ export default function BuscadorInteligente() {
   const [origenFinal, setOrigenFinal] = useState(''); // El código IATA real
   const [destinoFinal, setDestinoFinal] = useState('');
 
-  const [sugerenciasOrigen, setSugerenciasOrigen] = useState([]);
-  const [sugerenciasDestino, setSugerenciasDestino] = useState([]);
+  const [sugerenciasOrigen, setSugerenciasOrigen] = useState<any[]>([]);
+  const [sugerenciasDestino, setSugerenciasDestino] = useState<any[]>([]);
   const [fecha, setFecha] = useState('');
   const [vuelos, setVuelos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

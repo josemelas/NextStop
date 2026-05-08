@@ -64,7 +64,7 @@ export const authService = {
       const res = await fetch(`${API_URL}/validar-token/`, {
         method: "GET",
         headers: {
-          "Authorization": f`Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
       });
