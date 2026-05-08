@@ -19,7 +19,7 @@ export const authService = {
   // 2. Login: La URL final será API_URL + /login/
   login: async (email: string, pass: string) => {
     try {
-      const res = await fetch(`${API_URL}/login/`, {
+      const res = await fetch(`${API_URL}/login/`, {  
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
