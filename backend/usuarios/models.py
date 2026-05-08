@@ -34,12 +34,15 @@ class Usuario(models.Model):
     def __str__(self):
         return self.nombre
 
-class Usario_rol(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    rol = models.ForeignKey(Rol, on_delete=models.CASCADE)
+class Usuario_rol(models.Model):
+    id = models.AutoField(primary_key=True, db_column='id_usuario_rol')
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='id_usuario')
+    rol = models.ForeignKey(Rol, on_delete=models.CASCADE, db_column='id_rol')
 
     class Meta:
-        unique_together = ('usuario','rol')
+        managed = False
+        db_table = 'usuario_rol'
+        unique_together = ('usuario', 'rol')
 
 class Verificacion(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE,)
