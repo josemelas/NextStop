@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from usuarios.models import usuario
+from usuarios.models import Usuario
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password_hash = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        model = usuario
+        model = Usuario
         fields = [
             'id', 'nombre', 'email', 'password_hash', 'telefono', 'idioma_preferido', 'moneda_preferida', 'email_verificado',
             'activo','password_hash'
