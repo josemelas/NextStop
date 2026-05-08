@@ -124,8 +124,8 @@ export default function GestionRolesReal() {
                   <tbody>
                     {usuariosFiltrados.map((u) => (
                       <UserRow
-                        key={u.id}
-                        id={u.id}
+                        key={u.id_usuario}
+                        id={u.id_usuario}
                         name={u.nombre}
                         email={u.email}
                         role={u.roles[0] || "Cliente"}
