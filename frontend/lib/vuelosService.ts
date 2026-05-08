@@ -1,12 +1,14 @@
-// URL Base del servidor de Brian
-const API_URL = "https://nextstop-app-u9cvd.ondigitalocean.app/api/vuelos";
+// URL BASE DEL SERVIDOR (Basado en el dominio que Brian te confirmó)
+const BASE_URL = "https://seal-app-u4egd.ondigitalocean.app/api";
 
 export const vuelosService = {
-  // 1. Esta es para las sugerencias de ciudades (Ubicaciones)
+  /**
+   * 1. AUTOCOMPLETADO (Para los inputs mientras escribes)
+   * Brian dice: "es api/external/locations"
+   */
   buscarUbicaciones: async (query: string) => {
     try {
-      // Ruta: /api/vuelos/locations/
-      const res = await fetch(`${API_URL}/locations/?query=${encodeURIComponent(query)}`);
+      const res = await fetch(`${BASE_URL}/external/locations/?query=${encodeURIComponent(query)}`);
       if (!res.ok) return [];
       return await res.json();
     } catch (error) {
@@ -15,20 +17,22 @@ export const vuelosService = {
     }
   },
 
-  // 2. Esta es para buscar los vuelos reales
+  /**
+   * 2. BÚSQUEDA DE VUELOS (Para el botón naranja de buscar)
+   * Brian dice: "/api/vuelos/vuelos va al botón de buscar"
+   */
   buscarVuelosReales: async (origen: string, destino: string, fecha: string) => {
     try {
-      // Ruta: /api/vuelos/vuelos/
-      const url = `${API_URL}/vuelos/?origen=${encodeURIComponent(origen)}&destino=${encodeURIComponent(destino)}&fecha_salida=${fecha}`;
+      // Nota cómo cambia la ruta aquí a /vuelos/vuelos/
+      const url = `${BASE_URL}/vuelos/vuelos/?origen=${origen}&destino=${destino}&fecha_salida=${fecha}`;
 
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Error al buscar vuelos");
-      const data = await res.json();
+      if (!res.ok) throw new Error("Error en el servidor de vuelos");
 
-      // Retornamos los datos (si vienen en data.data o directo)
+      const data = await res.json();
       return data.data || data;
     } catch (error) {
-      console.error("Error en búsqueda de vuelos:", error);
+      console.error("Error en búsqueda real:", error);
       return { error: true };
     }
   }
