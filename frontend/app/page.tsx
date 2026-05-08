@@ -1,83 +1,110 @@
+"use client";
+
+import React from 'react';
+import {
+  Plane,
+  Search,
+  Armchair,
+  Ticket,
+  Globe,
+  BarChart3,
+  Users,
+  ChevronRight,
+  UserCircle
+} from 'lucide-react';
 import Link from 'next/link';
-import { Plane, Building2, BriefcaseBusiness, UserCircle } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-12 flex flex-col items-center">
+    <main className="min-h-screen bg-white font-sans">
 
-      {/* 1. Navbar */}
-      <header className="w-full max-w-7xl flex justify-between items-center mb-16 px-6 py-4 bg-white rounded-full shadow-sm border border-slate-100">
-        <div className="flex items-center gap-3">
-          <Plane className="w-8 h-8 text-stop-navy bg-slate-100 p-1.5 rounded-lg" />
-          <h1 className="text-3xl font-bold text-stop-navy tracking-tighter">
-            Next<span className="text-stop-accent">Stop</span>
-          </h1>
+      {/* --- NAVBAR AZUL CORPORATIVO (Match con "Next") --- */}
+      <nav className="flex items-center justify-between px-12 py-4 bg-[#1e3a8a] text-white shadow-md">
+        <div className="flex items-center gap-2">
+          <div className="bg-white/10 p-2 rounded-lg">
+            <Plane className="w-6 h-6 text-white rotate-45" />
+          </div>
+          <span className="text-2xl font-black tracking-tighter">
+            Next<span className="text-orange-400">Stop</span>
+          </span>
         </div>
-        <nav className="hidden md:flex items-center gap-8 font-medium text-slate-600">
-          <a href="#" className="hover:text-stop-navy transition-colors">Destinos</a>
-          <a href="#" className="hover:text-stop-navy transition-colors">Nosotros</a>
-          <a href="#" className="hover:text-stop-navy transition-colors">Contacto</a>
-          <Link
-            href="/cliente/login"
-            className="flex items-center gap-2 bg-stop-navy text-white px-5 py-2.5 rounded-full text-sm hover:bg-slate-800 transition shadow-md shadow-blue-900/10"
-          >
+
+        <div className="flex items-center gap-8 font-medium">
+          <a href="#" className="hover:text-orange-300 transition-colors">Destinos</a>
+          <a href="#" className="hover:text-orange-300 transition-colors">Nosotros</a>
+          <a href="#" className="hover:text-orange-300 transition-colors">Contacto</a>
+          <button className="flex items-center gap-2 bg-white/10 border border-white/20 px-5 py-2 rounded-full hover:bg-white/20 transition-all font-semibold">
             <UserCircle className="w-5 h-5" />
             Iniciar Sesión
-          </Link>
-        </nav>
-      </header>
-
-      {/* 2. Hero Section - Sin el badge y con espacio optimizado */}
-      <section className="w-full max-w-4xl text-center pt-8 mb-16">
-        <h2 className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
-          Next<span className="text-stop-accent">Stop</span>
-        </h2>
-
-        <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-14 leading-relaxed">
-          Una plataforma inteligente para gestionar y publicar experiencias de viaje. Conecta agencias con viajeros de forma fluida.
-        </p>
-
-        {/* 3. Tarjetas de Acceso */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-
-          {/* Tarjeta: Proveedor (Extranet) */}
-          <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 text-left hover:shadow-2xl transition-all duration-300 group/card">
-            <div className="bg-slate-100 w-14 h-14 flex items-center justify-center rounded-2xl mb-6 border border-slate-200">
-              <Building2 className="w-7 h-7 text-stop-navy" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-950 mb-3">Entrar como Proveedor</h3>
-            <p className="text-slate-600 mb-8 leading-relaxed text-sm">
-              Las agencias de viajes pueden publicar sus mejores vuelos y destinos para llegar a viajeros de todo el mundo.
-            </p>
-            <Link
-              href="/proveedor/login"
-              className="w-full flex justify-between items-center bg-slate-900 text-white px-6 py-4 rounded-xl font-semibold hover:bg-slate-800 transition-all group shadow-lg shadow-slate-200"
-            >
-              Entrar al Panel de Proveedor
-              <span className="text-xl group-hover:translate-x-2 transition-transform duration-300">›</span>
-            </Link>
-          </div>
-
-          {/* Tarjeta: Cliente (Marketplace) */}
-          <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 text-left hover:shadow-2xl transition-all duration-300 group/card">
-            <div className="bg-slate-100 w-14 h-14 flex items-center justify-center rounded-2xl mb-6 border border-slate-200">
-              <BriefcaseBusiness className="w-7 h-7 text-stop-navy" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-950 mb-3">Entrar como Cliente</h3>
-            <p className="text-slate-600 mb-8 leading-relaxed text-sm">
-              Busca, compara y reserva tus vuelos de forma segura. Accede a tu historial de viajes y gestiona tus reservas.
-            </p>
-            <Link
-              href="/cliente/login"
-              className="w-full flex justify-between items-center bg-stop-accent text-white px-6 py-4 rounded-xl font-semibold hover:bg-orange-600 transition-all group shadow-lg shadow-orange-200"
-            >
-              Acceder como Cliente
-              <span className="text-xl group-hover:translate-x-2 transition-transform duration-300">›</span>
-            </Link>
-          </div>
-
+          </button>
         </div>
+      </nav>
+
+      {/* --- HERO SECTION --- */}
+      <section className="text-center pt-24 pb-16 px-6">
+        <h1 className="text-7xl font-black text-[#1e293b] mb-6 tracking-tighter">
+          Next<span className="text-orange-500">Stop</span>
+        </h1>
+        <p className="text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed font-medium">
+          Una plataforma inteligente para gestionar y publicar experiencias de viaje.<br />
+          Conecta agencias con viajeros de forma fluida.
+        </p>
       </section>
+
+      {/* --- TARJETAS DE ACCESO (2 COLUMNAS) --- */}
+      <div className="max-w-5xl mx-auto px-8 grid grid-cols-1 md:grid-cols-2 gap-10 pb-24">
+
+        {/* CARD: PROVEEDOR */}
+        <div className="bg-white rounded-[3rem] p-12 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-slate-50 flex flex-col h-full hover:shadow-2xl transition-all group">
+          <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mb-8 shadow-lg">
+            <Plane className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-6 tracking-tight">Soy Proveedor</h2>
+          <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">
+            Las agencias de viajes pueden publicar sus mejores vuelos y destinos para llegar a viajeros de todo el mundo.
+          </p>
+          <ul className="space-y-4 mb-12 flex-1">
+            <li className="flex items-center gap-3 text-slate-600 font-semibold">
+              <Plane className="w-5 h-5 text-slate-400" /> Publicar vuelos
+            </li>
+            <li className="flex items-center gap-3 text-slate-600 font-semibold">
+              <Globe className="w-5 h-5 text-slate-400" /> Gestionar destinos
+            </li>
+            <li className="flex items-center gap-3 text-slate-600 font-semibold">
+              <BarChart3 className="w-5 h-5 text-slate-400" /> Ver estadísticas
+            </li>
+          </ul>
+          <Link href="/proveedor/login" className="flex items-center justify-between bg-slate-900 text-white px-8 py-5 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all shadow-lg group">
+            Entrar al Panel <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        {/* CARD: CLIENTE */}
+        <div className="bg-white rounded-[3rem] p-12 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-slate-50 flex flex-col h-full hover:shadow-2xl transition-all group">
+          <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mb-8 shadow-lg">
+            <Users className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-6 tracking-tight">Soy Cliente</h2>
+          <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">
+            Busca vuelos, compara precios, reserva asientos y gestiona tus boletos de viaje de forma fácil y segura.
+          </p>
+          <ul className="space-y-4 mb-12 flex-1">
+            <li className="flex items-center gap-3 text-slate-600 font-semibold">
+              <Search className="w-5 h-5 text-orange-500" /> Buscador de vuelos
+            </li>
+            <li className="flex items-center gap-3 text-slate-600 font-semibold">
+              <Armchair className="w-5 h-5 text-orange-500" /> Selección de asientos
+            </li>
+            <li className="flex items-center gap-3 text-slate-600 font-semibold">
+              <Ticket className="w-5 h-5 text-orange-500" /> Mis boletos
+            </li>
+          </ul>
+          <Link href="/cliente/login" className="flex items-center justify-between bg-orange-500 text-white px-8 py-5 rounded-2xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg group">
+            Acceder como Cliente <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+      </div>
     </main>
   );
 }

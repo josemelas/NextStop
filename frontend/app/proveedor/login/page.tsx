@@ -89,7 +89,7 @@ export default function ProviderLogin() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Ingresa tu Contraseña"
                   className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stop-navy/20 focus:border-stop-navy transition-all"
                   required
                 />

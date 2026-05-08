@@ -1,0 +1,71 @@
+"use client";
+
+import React from 'react';
+import { Plane, Search, Ticket, Heart, LogOut, Compass, History, User } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+export function SidebarCliente() {
+  const pathname = usePathname();
+
+  const links = [
+    { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
+    { name: 'Explorar Destinos', href: '/cliente/menupr/explorar', icon: Compass },
+    { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
+    { name: 'Mis Reservaciones', href: '/cliente/menupr/reservas', icon: History },
+    { name: 'Favoritos', href: '/cliente/menupr/favoritos', icon: Heart },
+    { name: 'Mi Perfil', href: '/cliente/menupr/perfil', icon: User },
+  ];
+
+  return (
+    <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
+      <div className="p-8 flex items-center gap-3">
+        <div className="bg-orange-500 p-2 rounded-xl shadow-lg">
+          <Plane className="w-6 h-6 text-white rotate-45" />
+        </div>
+        <div>
+          <h1 className="text-xl font-black tracking-tighter">Next<span className="text-orange-500">Stop</span></h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Portal del Viajero</p>
+        </div>
+      </div>
+
+      <nav className="flex-1 px-4 space-y-2 mt-4">
+        {links.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+              pathname === item.href
+              ? 'bg-white/10 text-white border border-white/5 shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <item.icon className={`w-5 h-5 ${pathname === item.href ? 'text-orange-500' : ''}`} />
+            {item.name}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="p-6 mt-auto border-t border-white/5">
+        <Link href="/" className="w-full flex items-center gap-4 text-slate-500 hover:text-red-400 p-4 rounded-2xl font-bold transition-all">
+          <LogOut className="w-5 h-5" /> Cerrar Sesión
+        </Link>
+      </div>
+    </aside>
+  );
+}
+
+export function HeaderUsuario() {
+  return (
+    <header className="flex justify-between items-center mb-12">
+      <div className="invisible italic text-slate-400">Navegación</div>
+      <div className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100">
+        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20">J</div>
+        <div>
+          <p className="text-sm font-black text-slate-900">Julián Vz</p>
+          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
+        </div>
+      </div>
+    </header>
+  );
+}
