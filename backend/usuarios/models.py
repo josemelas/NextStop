@@ -60,7 +60,8 @@ class Verificacion(models.Model):
         return f"Verificacion de {self.usuario.email}"
 
 class Sesion (models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True, db_column='id_sesion')
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='id_usuario')
     ip_origen = models.CharField(max_length=45)
     user_agent = models.CharField(max_length=255)
     fecha_inicio = models.DateTimeField()
