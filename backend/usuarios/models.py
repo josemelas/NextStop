@@ -68,5 +68,9 @@ class Sesion (models.Model):
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
     activo = models.BooleanField(default=True)
 
+    class Meta:
+        db_table = 'sesion'
+        managed = False
+
 def default_expiration():
     return timezone.now() + timedelta(minutes=1)
