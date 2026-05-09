@@ -1,85 +1,94 @@
-from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from apis_externas.services.amadeus_vuelos import buscar_vuelos
+import uuid
+from vuelos.models import Vuelo, Proveedorapi
 
-
-class VuelosView(APIView):
-    """
-    Buscar vuelos entre origen y destino con plan de contingencia.
-    """
-    permission_classes = [AllowAny]
-
+class GeneradorVuelos(APIView):
     def get(self, request):
         origen = request.query_params.get("origen")
         destino = request.query_params.get("destino")
         fecha_salida = request.query_params.get("fecha_salida")
 
-        if not all([origen, destino, fecha_salida]):
-            return Response({"error": "Faltan parámetros"}, status=400)
+        vuelos_bd = Vuelo.objects.filter(
+            origen=origen,
+            destino=destino,
+            fecha_salida__startswith=fecha_salida
+        )
 
-        try:
-            vuelos = buscar_vuelos(origen, destino, fecha_salida)
+        if vuelos_bd.exists():
+            return self.enviar_formato_frontend(vuelos_bd)
 
-            if isinstance(vuelos, dict) and "error" in vuelos:
-                raise Exception("Amadeus respondió con un error interno")
+        plantillas = [
+            {
+                "id_proveedor": 1,
+                "aerolinea": "Aeroméxico",
+                "codigo": "AM",
+                "sale": "08:30:00",
+                "llega": "10:45:00",
+                "precio": 4500.00
+            },
+            {
+                "id_proveedor": 2,
+                "aerolinea": "Iberia",
+                "codigo": "IB",
+                "sale": "14:15:00",
+                "llega": "20:30:00",
+                "precio": 1350.50
+            },
+            {
+                "id_proveedor": 3,
+                "aerolinea": "Volaris",
+                "codigo": "VO",
+                "sale": "14:15:00",
+                "llega": "17:30:00",
+                "precio": 6350.50
+            }
+        ]
 
-            if not vuelos:
-                raise Exception("Amadeus no encontró vuelos o está caído")
+        nuevos_vuelos = []
 
-            return Response(vuelos, status=200)
+        for p in plantillas:
+            vuelo_creado = Vuelo.objects.create(
+                id_proveedor_id=p["id_proveedor"],
+                api_id=uuid.uuid4().hex,
+                aerolinea=p["aerolinea"],
+                codigo_vuelo=f"{p['codigo']}-{uuid.uuid4().hex[:4].upper()}",
+                origen=origen,
+                destino=destino,
+                fecha_salida=f"{fecha_salida} {p['sale']}",
+                fecha_llegada=f"{fecha_salida} {p['llega']}",
+                precio_base=p["precio"],
+                asientos_disponibles=50
+            )
+            nuevos_vuelos.append(vuelo_creado)
 
-        except Exception as e:
-            print(f"⚠ Rescate activado ({e}). Mandando vuelos de emergencia...")
+        return self.enviar_formato_frontend(nuevos_vuelos)
 
-            vuelos_emergencia = [
-                {
-                    "id": "1",
-                    "itineraries": [
-                        {
-                            "segments": [
-                                {
-                                    "carrierCode": "AM",  # Aeroméxico
-                                    "departure": {
-                                        "iataCode": origen,
-                                        "at": f"{fecha_salida}T08:30:00"
-                                    },
-                                    "arrival": {
-                                        "iataCode": destino,
-                                        "at": f"{fecha_salida}T10:45:00"
-                                    }
+    def enviar_formato_frontend(self, vuelos):
+        respuesta = []
+        for v in vuelos:
+            respuesta.append({
+                "id": v.api_id,
+                "itineraries": [
+                    {
+                        "segments": [
+                            {
+                                "carrierCode": v.codigo_vuelo.split("-")[0],
+                                "departure": {
+                                    "iataCode": v.origen,
+                                    "at": v.fecha_salida.strftime("%Y-%m-%dT%H:%M:%S")
+                                },
+                                "arrival": {
+                                    "iataCode": v.destino,
+                                    "at": v.fecha_llegada.strftime("%Y-%m-%dT%H:%M:%S")
                                 }
-                            ]
-                        }
-                    ],
-                    "price": {
-                        "total": "4500.00",
-                        "currency": "MXN"
+                            }
+                        ]
                     }
-                },
-                {
-                    "id": "2",
-                    "itineraries": [
-                        {
-                            "segments": [
-                                {
-                                    "carrierCode": "IB",  # Iberia
-                                    "departure": {
-                                        "iataCode": origen,
-                                        "at": f"{fecha_salida}T14:15:00"
-                                    },
-                                    "arrival": {
-                                        "iataCode": destino,
-                                        "at": f"{fecha_salida}T20:30:00"
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    "price": {
-                        "total": "1350.50",
-                        "currency": "MXN"
-                    }
+                ],
+                "price": {
+                    "total": str(v.precio_base),
+                    "currency": "MXN"
                 }
-            ]
-            return Response(vuelos_emergencia, status=200)
+            })
+        return Response(respuesta, status=200)

@@ -1,6 +1,6 @@
 from django.urls import path
-from .views.vuelos_views import VuelosView
+from .views.vuelos_views import GeneradorVuelos
 
 urlpatterns = [
-    path('vuelos/', VuelosView.as_view(), name='buscar_vuelos'),
+    path('vuelos/', GeneradorVuelos.as_view(), name='buscar_vuelos'),
 ]
