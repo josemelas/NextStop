@@ -19,6 +19,10 @@ class Vuelo(models.Model):
     precio_base = models.DecimalField(max_digits=10, decimal_places=2)
     asientos_disponibles = models.IntegerField()
     creado_en = models.DateTimeField()
+
+    class Meta:
+        db_table = 'vuelo'
+        managed = False
     def __str__(self):
         return (f"{self.aereolinea} - {self.codigo_vuelo} - {self.origen} - {self.destino} - {self.fecha_salida} - {self.fehca_llegada} - {self.precio_base} - "
                 f"{self.asientos_disponibles} - {self.creado_en}")
