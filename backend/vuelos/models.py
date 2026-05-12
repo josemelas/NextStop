@@ -8,7 +8,8 @@ class Proveedorapi(models.Model):
         return self.nombre
 
 class Vuelo(models.Model):
-    Proveedor_api = models.ForeignKey(Proveedorapi, on_delete=models.CASCADE)
+    id_vuelo = models.AutoField(primary_key=True)
+    id_proveedor = models.ForeignKey('Proveedorapi', on_delete=models.SET_NULL, null=True, db_column='id_proveedor')
     api_id = models.CharField(max_length=100)
     aereolinea = models.CharField(max_length=100)
     codigo_vuelo = models.CharField(max_length=20)
