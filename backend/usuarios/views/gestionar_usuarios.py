@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from ..models import Usuario, Rol, Usuario_rol
-
+from django.db import transaction
 
 class GestionUsuariosAdminView(APIView):
     permission_classes = [AllowAny]
@@ -60,10 +60,24 @@ class GestionUsuariosAdminView(APIView):
             return Response({"error": "Se requiere el usuario_id para eliminar"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usuario = Usuario.objects.get(id=id_usuario)
-            nombre = usuario.nombre
-            usuario.delete()
-            return Response({"mensaje": f"El usuario {nombre} ha sido eliminado del sistema."},
-                            status=status.HTTP_200_OK)
+            with transaction.atomic():
+                usuario = Usuario.objects.get(id_usuario=id_usuario)
+                nombre_usuario = usuario.nombre
+                proveedor_vinculado = usuario.id_proveedor
+
+                if proveedor_vinculado:
+                    nombre_empresa = proveedor_vinculado.nombre
+                    proveedor_vinculado.delete()
+
+                usuario.delete()
+
+                mensaje = f"El usuario {nombre_usuario} ha sido eliminado."
+                if proveedor_vinculado:
+                    mensaje += f" También se eliminó la empresa {nombre_empresa}."
+
+                return Response({"mensaje": mensaje}, status=status.HTTP_200_OK)
+
         except Usuario.DoesNotExist:
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": f"Error al eliminar: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

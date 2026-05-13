@@ -2,8 +2,13 @@ from django.db import models
 from usuarios.models import Usuario
 
 class Proveedorapi(models.Model):
+    id_proveedor = models.AutoField(primary_key=True, db_column='id_proveedor')
     nombre = models.CharField(max_length=100)
     activo = models.BooleanField(default=1)
+
+    class Meta:
+        db_table = 'proveedor_api'
+        managed = False
     def __str__(self):
         return self.nombre
 
