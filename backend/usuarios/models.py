@@ -2,6 +2,14 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
+class Proveedorapi(models.Model):
+    id_proveedor = models.AutoField(primary_key=True, db_column='id_proveedor')
+    nombre = models.CharField(max_length=100)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'proveedor_api'
+        managed = False
 
 class Rol(models.Model):
     id = models.AutoField(primary_key=True, db_column='id_rol')
@@ -17,6 +25,13 @@ class Rol(models.Model):
 
 class Usuario(models.Model):
     id = models.AutoField(primary_key=True, db_column='id_usuario')
+    id_proveedor = models.ForeignKey(
+        Proveedorapi,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_proveedor'
+    )
     nombre = models.CharField(max_length = 100)
     email = models.CharField(max_length=150)
     password_hash = models.CharField(max_length=255)
