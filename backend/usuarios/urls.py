@@ -1,5 +1,5 @@
 from django.urls import path
-from .views.view_registrar import RegistrarUsuario
+from .views.view_registrar import RegistrarUsuario, RegistrarEmpresa
 from .views.view_verificar import VerificacionCorreo, VerificarLink, ReenviarVerificacion
 from .views.view_login import LoginUsuario
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -9,6 +9,7 @@ from .views.gestionar_usuarios import GestionUsuariosAdminView
 
 urlpatterns = [
     path('registrar/', RegistrarUsuario.as_view(), name='registrar_usuario'),
+    path('registrarEmpresa/', RegistrarEmpresa.as_view(), name='registrar_empresa'),
     path('verificar/', VerificacionCorreo.as_view(), name='verificar_correo'),
     path('verificar-link/<str:token>/', VerificarLink.as_view(), name='verificar_link'),
     path('reenviar-codigo/', ReenviarVerificacion.as_view(), name='reenviar_codigo'),
