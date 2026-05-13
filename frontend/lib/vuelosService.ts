@@ -1,4 +1,4 @@
-// URL BASE DEL SERVIDOR (Basado en el dominio que Brian te confirmó)
+// URL BASE DEL SERVIDOR
 const BASE_URL = "https://seal-app-u4egd.ondigitalocean.app/api";
 
 export const vuelosService = {

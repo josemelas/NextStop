@@ -24,7 +24,7 @@ export default function GestionRolesReal() {
     }
   }, [router]);
 
-  // 2. Cargar usuarios desde el backend de Brian
+  // 2. Cargar usuarios desde el backend
   const cargarUsuarios = async () => {
     setLoading(true);
     const data = await adminService.obtenerUsuarios();
