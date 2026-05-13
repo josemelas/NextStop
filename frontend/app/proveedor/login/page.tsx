@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 export default function ProviderLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Estado para ver contraseña
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -19,29 +19,32 @@ export default function ProviderLogin() {
     setError("");
 
     try {
-      // Petición al backend de Brian para validar el registro real
       const response = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          recaptcha_token: "fake-token" // Requerido por la clase LoginUsuario de Brian
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Si el correo coincide y el back da acceso, guardamos sesión
-        localStorage.setItem('user_token', data.access);
+        // Guardamos el token de acceso y la info del usuario como lo devuelve el backend
+        localStorage.setItem('user_token', data.token.access);
         localStorage.setItem('user_data', JSON.stringify(data.usuario));
 
-        // Redirección a la ruta solicitada
+        // Redirección al panel de proveedor
         router.push('/proveedor/menupr');
       } else {
-        // Error en caso de que no coincida el registro
-        setError(data.error || "Correo o contraseña incorrectos.");
+        // Mostramos el error específico que devuelve Django (ej: "Correo no verificado")
+        setError(data.error || "Credenciales incorrectas.");
         setPassword('');
       }
     } catch (err) {
-      setError("No se pudo conectar con el servidor.");
+      setError("No se pudo establecer conexión con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -81,6 +84,7 @@ export default function ProviderLogin() {
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -99,6 +103,7 @@ export default function ProviderLogin() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -106,7 +111,6 @@ export default function ProviderLogin() {
                   className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stop-navy/20 focus:border-stop-navy transition-all"
                   required
                 />
-                {/* Botón para ver contraseña */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
