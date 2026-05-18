@@ -54,7 +54,7 @@ class GestionUsuariosAdminView(APIView):
         }, status=status.HTTP_200_OK)
 
     def delete(self, request):
-        id_usuario = request.query_params.get('usuario_id')
+        id_usuario = request.query_params.get('id_usuario')
 
         if not id_usuario:
             return Response({"error": "Se requiere el usuario_id para eliminar"}, status=status.HTTP_400_BAD_REQUEST)
