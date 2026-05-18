@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Plane, Search, Ticket, Heart, LogOut, History, User, ShieldCheck, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plane, Search, Ticket, Heart, LogOut, User, ShieldCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAdmin } from '@/lib/adminGuard';
