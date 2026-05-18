@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Plane, Search, Ticket, Heart, LogOut, History, User, ShieldCheck, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plane, Search, Ticket, Heart, LogOut, User, ShieldCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAdmin } from '@/lib/adminGuard';
@@ -13,12 +13,10 @@ export function SidebarCliente() {
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
     { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
-    { name: 'Mis Reservaciones', href: '/cliente/menupr/reservas', icon: History },
     { name: 'Favoritos', href: '/cliente/menupr/favoritos', icon: Heart },
     { name: 'Mi Perfil', href: '/cliente/menupr/perfil', icon: User },
   ];
 
-  // Si es administrador, añadimos la gestión de usuarios a la lista principal
   if (showAdmin) {
     links.push({ name: 'Gestión de Usuarios', href: '/admin/usuarios', icon: Users });
   }
@@ -36,22 +34,26 @@ export function SidebarCliente() {
       </div>
 
       <nav className="flex-1 px-4 space-y-2 mt-4">
-        {links.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
-              pathname === item.href
-              ? 'bg-white/10 text-white border border-white/5 shadow-inner'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <item.icon className={`w-5 h-5 ${pathname === item.href ? 'text-orange-500' : ''}`} />
-            {item.name}
-          </Link>
-        ))}
+        {links.map((item) => {
+          const IconoComponente = item.icon;
 
-        {/* BOTÓN DE PANEL PRINCIPAL ADMIN - Solo visible para José y Brian */}
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                pathname === item.href
+                ? 'bg-white/10 text-white border border-white/5 shadow-inner'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <IconoComponente className={`w-5 h-5 ${pathname === item.href ? 'text-orange-500' : ''}`} />
+              {item.name}
+            </Link>
+          );
+        })}
+
+        {/* BOTÓN DE PANEL PRINCIPAL ADMIN */}
         {showAdmin && (
           <div className="pt-6 mt-6 border-t border-white/10 px-2">
             <Link
@@ -83,16 +85,51 @@ export function SidebarCliente() {
 }
 
 export function HeaderUsuario() {
+  const [nombreMostrar, setNombreMostrar] = useState("Viajero");
+  const [inicial, setInicial] = useState("V");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userDataString = localStorage.getItem("user_data");
+      if (userDataString) {
+        try {
+          const user = JSON.parse(userDataString);
+          if (user && user.nombre) {
+            // Limpiamos los espacios extras a los lados y separamos por palabras
+            const palabras = user.nombre.trim().split(/\s+/);
+
+            if (palabras.length > 0) {
+              // Tomamos el primer elemento como primer nombre
+              const primerNombre = palabras[0].charAt(0).toUpperCase() + palabras[0].slice(1).toLowerCase();
+              let nombreCompletoFormateado = primerNombre;
+
+              // Si hay más de una palabra, tomamos la segunda como primer apellido
+              if (palabras.length > 1) {
+                const primerApellido = palabras[1].charAt(0).toUpperCase() + palabras[1].slice(1).toLowerCase();
+                nombreCompletoFormateado = `${primerNombre} ${primerApellido}`;
+              }
+
+              setNombreMostrar(nombreCompletoFormateado);
+              setInicial(primerNombre.charAt(0).toUpperCase());
+            }
+          }
+        } catch (error) {
+          console.error("Error al leer el perfil de usuario:", error);
+        }
+      }
+    }
+  }, []);
+
   return (
     <header className="flex justify-between items-center mb-12">
       <div className="invisible italic text-slate-400">Navegación</div>
       <div className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100">
         <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20">
-          J
+          {inicial}
         </div>
         <div>
-          <p className="text-sm font-black text-slate-900">José Vallejo</p>
-          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Admin Gold</p>
+          <p className="text-sm font-black text-slate-900">{nombreMostrar}</p>
+          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
         </div>
       </div>
     </header>
