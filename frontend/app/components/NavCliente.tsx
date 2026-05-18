@@ -10,7 +10,6 @@ export function SidebarCliente() {
   const pathname = usePathname();
   const showAdmin = isAdmin();
 
-  // "Mis Reservaciones" eliminado de la lista por completo
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
     { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
@@ -36,7 +35,6 @@ export function SidebarCliente() {
 
       <nav className="flex-1 px-4 space-y-2 mt-4">
         {links.map((item) => {
-          // Solución para Illegal constructor: Guardamos el icono en una variable con Mayúscula
           const IconoComponente = item.icon;
 
           return (
@@ -87,7 +85,7 @@ export function SidebarCliente() {
 }
 
 export function HeaderUsuario() {
-  const [primerNombre, setPrimerNombre] = useState("Viajero");
+  const [nombreMostrar, setNombreMostrar] = useState("Viajero");
   const [inicial, setInicial] = useState("V");
 
   useEffect(() => {
@@ -97,12 +95,23 @@ export function HeaderUsuario() {
         try {
           const user = JSON.parse(userDataString);
           if (user && user.nombre) {
-            const nombreCompleto = user.nombre.trim();
-            const primerEspacio = nombreCompleto.split(" ")[0];
+            // Limpiamos los espacios extras a los lados y separamos por palabras
+            const palabras = user.nombre.trim().split(/\s+/);
 
-            const nombreFormateado = primerEspacio.charAt(0).toUpperCase() + primerEspacio.slice(1);
-            setPrimerNombre(nombreFormateado);
-            setInicial(nombreFormateado.charAt(0).toUpperCase());
+            if (palabras.length > 0) {
+              // Tomamos el primer elemento como primer nombre
+              const primerNombre = palabras[0].charAt(0).toUpperCase() + palabras[0].slice(1).toLowerCase();
+              let nombreCompletoFormateado = primerNombre;
+
+              // Si hay más de una palabra, tomamos la segunda como primer apellido
+              if (palabras.length > 1) {
+                const primerApellido = palabras[1].charAt(0).toUpperCase() + palabras[1].slice(1).toLowerCase();
+                nombreCompletoFormateado = `${primerNombre} ${primerApellido}`;
+              }
+
+              setNombreMostrar(nombreCompletoFormateado);
+              setInicial(primerNombre.charAt(0).toUpperCase());
+            }
           }
         } catch (error) {
           console.error("Error al leer el perfil de usuario:", error);
@@ -119,7 +128,7 @@ export function HeaderUsuario() {
           {inicial}
         </div>
         <div>
-          <p className="text-sm font-black text-slate-900">{primerNombre}</p>
+          <p className="text-sm font-black text-slate-900">{nombreMostrar}</p>
           <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
         </div>
       </div>
