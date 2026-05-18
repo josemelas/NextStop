@@ -21,7 +21,7 @@ export default function ClientLogin() {
 
     try {
       // 1. Modificación: Pasamos el "fake-token" para saltar el reCAPTCHA del backend de Brian
-      const { ok, data } = await authService.login(email, password, "fake-token");
+      const { ok, data } = await authService.login(email, password);
 
       if (ok) {
         // 2. Modificación: Guardamos el token de acceso y la info del usuario en localStorage
