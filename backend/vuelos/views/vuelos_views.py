@@ -4,8 +4,9 @@ import uuid
 import random
 from datetime import datetime, date
 from django.utils.timezone import make_aware
+from reservas.views import reservas
 from vuelos.models import Vuelo, Proveedorapi
-
+from reservas.models import Reserva
 
 class GeneradorVuelos(APIView):
     def get(self, request):
@@ -59,7 +60,7 @@ class GeneradorVuelos(APIView):
                 fecha_salida=make_aware(obj_salida),
                 fecha_llegada=make_aware(obj_llegada),
                 precio_base=round(precio_final, 2),
-                asientos_disponibles=random.randint(10, 80)
+                asientos_disponibles=random.randint(10, 75)
             )
             nuevos_vuelos.append(vuelo_creado)
 
@@ -68,13 +69,22 @@ class GeneradorVuelos(APIView):
     def enviar_formato_frontend(self, vuelos):
         respuesta = []
         for v in vuelos:
+            reservas_del_vuelo = Reserva.objects.filter(id_vuelo=v)
+            lista_asientos_ocupados = []
             at_salida = v.fecha_salida.strftime("%Y-%m-%dT%H:%M:%S") if hasattr(v.fecha_salida, 'strftime') else str(
                 v.fecha_salida).replace(" ", "T")
             at_llegada = v.fecha_llegada.strftime("%Y-%m-%dT%H:%M:%S") if hasattr(v.fecha_llegada, 'strftime') else str(
                 v.fecha_llegada).replace(" ", "T")
+            for r in reservas_del_vuelo:
+                if r.asiento_asignado:
+                    asientos = [asiento.strip() for asiento in r.asiento_asignado.split(',')]
+                    lista_asientos_ocupados.extend(asientos)
+
 
             respuesta.append({
                 "id": v.api_id,
+                "numberOfBookableSeats": v.asientos_disponibles,
+                "occupiedSeats": lista_asientos_ocupados,
                 "itineraries": [
                     {
                         "segments": [
