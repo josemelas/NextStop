@@ -4,8 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Plane, Calendar, MapPin, Globe, Loader2, AlertCircle } from 'lucide-react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { vuelosService } from '@/lib/vuelosService';
+import { useRouter } from 'next/navigation';
 
 export default function BuscadorVuelosNextStop() {
+  const router = useRouter();
+
   // Estados para inputs y búsqueda
   const [origenQuery, setOrigenQuery] = useState('');
   const [destinoQuery, setDestinoQuery] = useState('');
@@ -188,7 +191,24 @@ export default function BuscadorVuelosNextStop() {
                   <p className="text-5xl font-black text-slate-900 tracking-tighter mb-4">
                     ${vuelo.price.total} <span className="text-lg text-slate-400">{vuelo.price.currency}</span>
                   </p>
-                  <button className="bg-[#4d7c44] hover:bg-green-700 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-lg shadow-green-100 uppercase text-xs tracking-widest">
+                  <button
+                    onClick={() => {
+                      // MODIFICACIÓN: Empaquetamos explícitamente origenFinal y destinoFinal reales de la búsqueda
+                      const datosVueloParaComprar = {
+                        ...vuelo,
+                        origen: origenFinal,
+                        destino: destinoFinal,
+                        precio: vuelo.precio || (vuelo.price ? parseFloat(vuelo.price.total) : 12500),
+                        moneda: vuelo.moneda || (vuelo.price ? vuelo.price.currency : "MXN"),
+                        aerolinea: vuelo.aerolinea || "Aeroméxico",
+                        hora_salida: new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                        fecha: new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                      };
+                      localStorage.setItem('vuelo_seleccionado', JSON.stringify(datosVueloParaComprar));
+                      router.push('/cliente/menupr/comprar');
+                    }}
+                    className="bg-[#4d7c44] hover:bg-green-700 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-lg shadow-green-100 uppercase text-xs tracking-widest cursor-pointer"
+                  >
                     Seleccionar Vuelo
                   </button>
                 </div>
