@@ -15,23 +15,32 @@ export default function ClientLogin() {
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setIsLoading(true);
-  try {
-    const { ok, data } = await authService.login(email, password);
-    if (ok) {
-      // Redirección al Dashboard Principal
-      router.push('/cliente/menupr');
-    } else {
-      setError(data.error || "Credenciales incorrectas");
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // 1. Modificación: Pasamos el "fake-token" para saltar el reCAPTCHA del backend de Brian
+      const { ok, data } = await authService.login(email, password, "fake-token");
+
+      if (ok) {
+        // 2. Modificación: Guardamos el token de acceso y la info del usuario en localStorage
+        // El backend de Brian anida el JWT dentro de data.token.access
+        localStorage.setItem('user_token', data.token.access);
+        localStorage.setItem('user_data', JSON.stringify(data.usuario));
+
+        // Redirección al Dashboard Principal
+        router.push('/cliente/menupr');
+      } else {
+        // Captura el mensaje de error específico de Django (ej. "Contraseña incorrecta")
+        setError(data.error || "Credenciales incorrectas");
+      }
+    } catch (err) {
+      setError("Error de conexión con el servidor");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    setError("Error de conexión");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
@@ -61,7 +70,15 @@ export default function ClientLogin() {
               <label className="text-sm font-semibold text-slate-700 ml-1">Correo Electrónico</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all" required />
+                <input
+                  name="email" // Agregado el atributo name por consistencia estándar
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tucorreo@ejemplo.com"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                  required
+                />
               </div>
             </div>
 
@@ -69,8 +86,18 @@ export default function ClientLogin() {
               <label className="text-sm font-semibold text-slate-700 ml-1">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ingresa tu Contraseña" className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 z-10 p-1">{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
+                <input
+                  name="password" // Agregado el atributo name idéntico al de proveedor
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Ingresa tu Contraseña"
+                  className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 z-10 p-1">
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 

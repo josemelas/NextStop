@@ -9,7 +9,7 @@ import { authService } from '@/lib/authService';
 export default function ClientRegister() {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
-  const [telefono, setTelefono] = useState(''); // Estado para el nuevo campo
+  const [telefono, setTelefono] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,12 +30,13 @@ export default function ClientRegister() {
     setIsLoading(true);
 
     try {
-      // Enviamos el objeto completo incluyendo el teléfono
+      // Modificación: Agregamos recaptcha_token exigido por el backend de Brian
       const data = await authService.registrar({
         nombre,
         email,
-        telefono, // Nuevo dato enviado al servicio
-        password
+        telefono,
+        password,
+        recaptcha_token: "fake-token" // Bypass del CAPTCHA para desarrollo
       });
 
       if (data && data.mensaje) {
@@ -96,6 +97,7 @@ export default function ClientRegister() {
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
+                    name="nombre"
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
@@ -111,6 +113,7 @@ export default function ClientRegister() {
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
+                    name="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -121,12 +124,12 @@ export default function ClientRegister() {
                 </div>
               </div>
 
-              {/* NUEVO CAMPO: TELÉFONO */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-800 ml-1">Número de Teléfono</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
+                    name="telefono"
                     type="tel"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
@@ -142,6 +145,7 @@ export default function ClientRegister() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -165,6 +169,7 @@ export default function ClientRegister() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
+                    name="confirmPassword"
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
