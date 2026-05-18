@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plane, Calendar, MapPin, Globe, Loader2, Search, AlertCircle } from 'lucide-react';
+import { Plane, Calendar, MapPin, Globe, Loader2, AlertCircle } from 'lucide-react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { vuelosService } from '@/lib/vuelosService';
 

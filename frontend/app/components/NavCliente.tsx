@@ -83,16 +83,44 @@ export function SidebarCliente() {
 }
 
 export function HeaderUsuario() {
+  const [primerNombre, setPrimerNombre] = useState("Viajero");
+  const [inicial, setInicial] = useState("V");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userDataString = localStorage.getItem("user_data");
+      if (userDataString) {
+        try {
+          const user = JSON.parse(userDataString);
+          if (user && user.nombre) {
+            // Obtenemos el primer nombre rompiendo por los espacios en blanco
+            const nombreCompleto = user.nombre.trim();
+            const primerEspacio = nombreCompleto.split(" ")[0];
+
+            // Capitalizamos la primera letra por estética
+            const nombreFormateado = primerEspacio.charAt(0).toUpperCase() + primerEspacio.slice(1);
+            setPrimerNombre(nombreFormateado);
+
+            // Obtenemos la inicial para el círculo visual
+            setInicial(nombreFormateado.charAt(0).toUpperCase());
+          }
+        } catch (error) {
+          console.error("Error al leer el perfil de usuario:", error);
+        }
+      }
+    }
+  }, []);
+
   return (
     <header className="flex justify-between items-center mb-12">
       <div className="invisible italic text-slate-400">Navegación</div>
       <div className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100">
         <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20">
-          J
+          {inicial}
         </div>
         <div>
-          <p className="text-sm font-black text-slate-900">José Vallejo</p>
-          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Admin Gold</p>
+          <p className="text-sm font-black text-slate-900">{primerNombre}</p>
+          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
         </div>
       </div>
     </header>
