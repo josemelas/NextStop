@@ -26,7 +26,7 @@ class GestionUsuariosAdminView(APIView):
         return Response(lista_usuarios, status=status.HTTP_200_OK)
 
     def put(self, request):
-        id_usuario = request.data.get('id_usuario')
+        id_usuario = request.data.get('id_usuario') or request.query_params.get('usuario_id')
         nuevos_roles = request.data.get('roles')
 
         if not id_usuario or nuevos_roles is None:
