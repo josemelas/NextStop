@@ -54,14 +54,14 @@ class GestionUsuariosAdminView(APIView):
         }, status=status.HTTP_200_OK)
 
     def delete(self, request):
-        id_usuario = request.query_params.get('id_usuario')
+        id_usuario = request.query_params.get('id_usuario') or request.query_params.get('usuario_id')
 
         if not id_usuario:
             return Response({"error": "Se requiere el usuario_id para eliminar"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
-                usuario = Usuario.objects.get(id_usuario=id_usuario)
+                usuario = Usuario.objects.get(id=id_usuario)
                 nombre_usuario = usuario.nombre
                 proveedor_vinculado = usuario.id_proveedor
 
@@ -80,4 +80,5 @@ class GestionUsuariosAdminView(APIView):
         except Usuario.DoesNotExist:
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            print(f"Error real en DELETE: {str(e)}")
             return Response({"error": f"Error al eliminar: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
