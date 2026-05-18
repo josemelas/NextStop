@@ -10,15 +10,14 @@ export function SidebarCliente() {
   const pathname = usePathname();
   const showAdmin = isAdmin();
 
+  // "Mis Reservaciones" eliminado de la lista por completo
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
     { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
-    { name: 'Mis Reservaciones', href: '/cliente/menupr/reservas', icon: History },
     { name: 'Favoritos', href: '/cliente/menupr/favoritos', icon: Heart },
     { name: 'Mi Perfil', href: '/cliente/menupr/perfil', icon: User },
   ];
 
-  // Si es administrador, añadimos la gestión de usuarios a la lista principal
   if (showAdmin) {
     links.push({ name: 'Gestión de Usuarios', href: '/admin/usuarios', icon: Users });
   }
@@ -36,22 +35,27 @@ export function SidebarCliente() {
       </div>
 
       <nav className="flex-1 px-4 space-y-2 mt-4">
-        {links.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
-              pathname === item.href
-              ? 'bg-white/10 text-white border border-white/5 shadow-inner'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <item.icon className={`w-5 h-5 ${pathname === item.href ? 'text-orange-500' : ''}`} />
-            {item.name}
-          </Link>
-        ))}
+        {links.map((item) => {
+          // Solución para Illegal constructor: Guardamos el icono en una variable con Mayúscula
+          const IconoComponente = item.icon;
 
-        {/* BOTÓN DE PANEL PRINCIPAL ADMIN - Solo visible para José y Brian */}
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                pathname === item.href
+                ? 'bg-white/10 text-white border border-white/5 shadow-inner'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <IconoComponente className={`w-5 h-5 ${pathname === item.href ? 'text-orange-500' : ''}`} />
+              {item.name}
+            </Link>
+          );
+        })}
+
+        {/* BOTÓN DE PANEL PRINCIPAL ADMIN */}
         {showAdmin && (
           <div className="pt-6 mt-6 border-t border-white/10 px-2">
             <Link
@@ -93,15 +97,11 @@ export function HeaderUsuario() {
         try {
           const user = JSON.parse(userDataString);
           if (user && user.nombre) {
-            // Obtenemos el primer nombre rompiendo por los espacios en blanco
             const nombreCompleto = user.nombre.trim();
             const primerEspacio = nombreCompleto.split(" ")[0];
 
-            // Capitalizamos la primera letra por estética
             const nombreFormateado = primerEspacio.charAt(0).toUpperCase() + primerEspacio.slice(1);
             setPrimerNombre(nombreFormateado);
-
-            // Obtenemos la inicial para el círculo visual
             setInicial(nombreFormateado.charAt(0).toUpperCase());
           }
         } catch (error) {
