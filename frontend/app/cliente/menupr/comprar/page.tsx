@@ -5,6 +5,7 @@ import { Plane, Calendar, MapPin, Globe, Loader2, ArrowLeft, Users, CreditCard, 
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { reservasService } from '@/app/lib/reservasService'; // Importamos el nuevo servicio
 
 const FILAS_AVION = [
   { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'OCUPADO' }, { id: '1D', tipo: 'OCUPADO' }, { id: '1E', tipo: 'OCUPADO' }, { id: '1F', tipo: 'PREMIUM' }] },
@@ -30,6 +31,10 @@ export default function ReservarVueloWizard() {
 
   const [loadingCompra, setLoadingCompra] = useState(false);
   const [compraExitosa, setCompraExitosa] = useState(false);
+
+  // Estado para capturar el código oficial devuelto por Brian y errores del back
+  const [codigoConfirmacionBackend, setCodigoConfirmacionBackend] = useState("");
+  const [errorBackend, setErrorBackend] = useState("");
 
   useEffect(() => {
     const vueloGuardado = localStorage.getItem('vuelo_seleccionado');
@@ -62,7 +67,6 @@ export default function ReservarVueloWizard() {
     );
   }
 
-  // Extracción limpia y segura desde el objeto empaquetado del storage local
   const origenCodigo = vuelo.origen || "MEX";
   const destinoCodigo = vuelo.destino || "MAD";
   const precioUnidad = vuelo.precio || 12500;
@@ -102,11 +106,42 @@ export default function ReservarVueloWizard() {
     }
   };
 
-  const ejecutarSimulacionCompra = () => {
+  // CONEXIÓN CON EL ENDPOINT POST DE CREARRESERVA
+  const ejecutarCompraRealBackend = async () => {
     setLoadingCompra(true);
-    setTimeout(() => {
-      const nuevoBoleto = {
-        id_compra: Math.floor(Math.random() * 900000) + 100000,
+    setErrorBackend("");
+
+    // 1. Extraemos el id_usuario desde los datos del usuario logueado en el localStorage
+    const userDataString = localStorage.getItem("user_data");
+    let usuarioIdReal = 1; // Fallback seguro por si acaso
+
+    if (userDataString) {
+      try {
+        const user = JSON.parse(userDataString);
+        if (user && user.id) usuarioIdReal = user.id;
+      } catch (e) {
+        console.error("Error al leer id de usuario para reserva", e);
+      }
+    }
+
+    // 2. Mapeamos el payload exacto exigido por la API de Brian
+    const payloadReserva = {
+      vuelo_id: vuelo.api_id || vuelo.id || "API-MOCK-ID", // Prioridad al identificador que use el modelo de Vuelo
+      usuario_id: usuarioIdReal,
+      cantidad_pasajeros: cantidadPasajeros,
+      asientos: asientosSeleccionados.join(', '), // Los mandamos como String ("6B, 6D")
+      monto_total: precioFinalTotal
+    };
+
+    // 3. Disparamos la petición HTTP al Backend
+    const res = await reservasService.crearReserva(payloadReserva);
+
+    if (res.status === 201) {
+      setCodigoConfirmacionBackend(res.data.codigo_confirmacion);
+
+      // Guardamos la respuesta estructurada en tu historial local para que la pantalla de "Boletos" lo renderice
+      const nuevoBoletoHistorial = {
+        id_compra: res.data.codigo_confirmacion, // Usamos el código oficial de Django
         aerolinea,
         origen: origenCodigo,
         destino: destinoCodigo,
@@ -121,12 +156,15 @@ export default function ReservarVueloWizard() {
       };
 
       const boletosActuales = JSON.parse(localStorage.getItem('historial_boletos') || '[]');
-      boletosActuales.push(nuevoBoleto);
+      boletosActuales.push(nuevoBoletoHistorial);
       localStorage.setItem('historial_boletos', JSON.stringify(boletosActuales));
 
-      setLoadingCompra(false);
       setCompraExitosa(true);
-    }, 2500);
+    } else {
+      // Si el backend responde con error de falta de asientos (400) o no disponible (404)
+      setErrorBackend(res.data.error || "No se pudo completar el cobro de la reserva.");
+    }
+    setLoadingCompra(false);
   };
 
   return (
@@ -170,6 +208,7 @@ export default function ReservarVueloWizard() {
                 <p>✈️ <span className="text-slate-900">Ruta:</span> {origenCodigo} → {destinoCodigo}</p>
                 <p>👥 <span className="text-slate-900">Pasajeros:</span> {cantidadPasajeros}</p>
                 <p>💺 <span className="text-slate-900">Asientos Reservados:</span> {asientosSeleccionados.join(', ')}</p>
+                <p>🔑 <span className="text-slate-900">Código de Confirmación:</span> <span className="font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">{codigoConfirmacionBackend}</span></p>
                 <p>💵 <span className="text-slate-900">Monto Total Cargado:</span> ${precioFinalTotal.toLocaleString()} {moneda}</p>
               </div>
               <button onClick={() => router.push('/cliente/menupr')} className="w-full bg-slate-900 hover:bg-orange-500 text-white font-black py-4 rounded-xl transition-all uppercase text-xs tracking-widest cursor-pointer">
@@ -180,7 +219,13 @@ export default function ReservarVueloWizard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               <div className="lg:col-span-2 space-y-8">
 
-                {/* CARD RESUMEN DEL TRÁYECTO — CORREGIDO TOTALMENTE DINÁMICO */}
+                {errorBackend && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 font-bold text-sm p-4 rounded-2xl flex items-center gap-2">
+                    <span>⚠️ Error: {errorBackend}</span>
+                  </div>
+                )}
+
+                {/* CARD RESUMEN DEL TRÁYECTO */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -361,7 +406,6 @@ export default function ReservarVueloWizard() {
                   <div className="flex justify-between text-sm font-black text-slate-900 mb-2">
                     <span>Resumen de Viaje</span>
                   </div>
-                  {/* MODIFICACIÓN: Inyección de variables dinámicas reales en el bloque de resumen lateral */}
                   <p>🛫 Origen: {origenCodigo}</p>
                   <p>🛬 Destino: {destinoCodigo}</p>
                   <p>📅 Fecha: {fechaMostrar}</p>
@@ -413,7 +457,7 @@ export default function ReservarVueloWizard() {
 
                 {step === 3 && (
                   <button
-                    onClick={ejecutarSimulacionCompra}
+                    onClick={ejecutarCompraRealBackend} // Cambiado a la función que conecta al backend de Django
                     disabled={loadingCompra}
                     className="w-full bg-[#4d7c44] hover:bg-green-700 text-white font-black py-4 rounded-xl transition-all uppercase text-xs tracking-widest shadow-md flex items-center justify-center gap-2 cursor-pointer"
                   >
