@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'logs',
     'apis_externas',
     'corsheaders',
-    'reservas',
+    'reservas.apps.ReservasConfig',
 ]
 
 MIDDLEWARE = [
