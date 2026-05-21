@@ -45,7 +45,7 @@ class CrearReserva(APIView):
 
                 try:
                     usuario_comprador = reserva.id_usuario
-                    asunto_correo = f"✈️ Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
+                    asunto_correo = f"Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
 
                     contexto = {
                         "nombre_usuario": usuario_comprador.nombre,
