@@ -8,8 +8,8 @@ export const reservasService = {
     monto_total: number;
   }) {
     try {
-      // IMPORTANTE: Asegúrate de usar la URL absoluta con la diagonal al final de crearreservas/
-      const response = await fetch('https://seal-app-u4egd.ondigitalocean.app/crearreservas/', {
+      // NUEVA URL DE BRIAN: Apuntando a /api/reservas/crear/
+      const response = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/reservas/crear/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
