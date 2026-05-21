@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plane, Calendar, MapPin, Globe, Loader2, AlertCircle } from 'lucide-react';
+import { Plane, Calendar, MapPin, Globe, Loader2, AlertCircle, Star } from 'lucide-react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { vuelosService } from '@/lib/vuelosService';
+import { favoritosService } from '@/lib/favoritosService'; // NUEVO: Importación de tu servicio de favoritos
 import { useRouter } from 'next/navigation';
 
 export default function BuscadorVuelosNextStop() {
@@ -22,6 +23,11 @@ export default function BuscadorVuelosNextStop() {
   const [vuelos, setVuelos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // NUEVOS ESTADOS: Control de favoritos y carga asíncrona individual
+  const [favoritosIds, setFavoritosIds] = useState<string[]>([]);
+  const [loadingEstrella, setLoadingEstrella] = useState<string | null>(null);
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
   // Autocompletado para ORIGEN
   useEffect(() => {
@@ -48,6 +54,63 @@ export default function BuscadorVuelosNextStop() {
     }, 400);
     return () => clearTimeout(delay);
   }, [destinoQuery, destinoFinal]);
+
+  // NUEVO EFFECT: Cargar información de sesión y favoritos del usuario al montar el componente
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userDataString = localStorage.getItem("user_data");
+      if (userDataString) {
+        try {
+          const user = JSON.parse(userDataString);
+          if (user && user.id) {
+            setUsuarioId(user.id);
+            cargarFavoritosIniciales(user.id);
+          }
+        } catch (e) {
+          console.error("Error al leer datos de usuario para el módulo de favoritos", e);
+        }
+      }
+    }
+  }, []);
+
+  const cargarFavoritosIniciales = async (id: number) => {
+    const favs = await favoritosService.listarFavoritos(id);
+    if (Array.isArray(favs)) {
+      // Filtramos únicamente los identificadores de recurso de tipo VUELO
+      const ids = favs.filter(f => f.tipo_recurso === 'VUELO').map(f => f.id_recurso);
+      setFavoritosIds(ids);
+    }
+  };
+
+  // NUEVA FUNCIÓN: Alterna el estado de favoritos conectándose con DigitalOcean
+  const handleToggleFavorito = async (vueloApiId: string) => {
+    if (!usuarioId) {
+      alert("Por favor, inicia sesión para poder agregar vuelos a tus favoritos.");
+      return;
+    }
+
+    setLoadingEstrella(vueloApiId); // Bloqueamos momentáneamente la estrella del vuelo interactuado
+    const yaEsFavorito = favoritosIds.includes(vueloApiId);
+
+    if (yaEsFavorito) {
+      // Si ya está guardado, llamamos al DELETE con la opción B de Brian
+      const res = await favoritosService.eliminarFavorito(usuarioId, vueloApiId, 'VUELO');
+      if (res.status === 200) {
+        setFavoritosIds(prev => prev.filter(id => id !== vueloApiId));
+      } else {
+        alert(res.data?.error || "Ocurrió un inconveniente al remover de favoritos.");
+      }
+    } else {
+      // Si es nuevo, mandamos el payload al POST
+      const res = await favoritosService.agregarFavorito(usuarioId, vueloApiId, 'VUELO');
+      if (res.status === 201) {
+        setFavoritosIds(prev => [...prev, vueloApiId]);
+      } else {
+        alert(res.data?.error || "Ocurrió un inconveniente al registrar en favoritos.");
+      }
+    }
+    setLoadingEstrella(null);
+  };
 
   const handleBuscar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,54 +229,86 @@ export default function BuscadorVuelosNextStop() {
 
           {/* RESULTADOS */}
           <div className="space-y-6 pb-20">
-            {vuelos.map((vuelo, idx) => (
-              <div key={idx} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between group hover:shadow-2xl transition-all duration-500">
-                <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white font-black text-xl shadow-lg">
-                    {vuelo.itineraries[0].segments[0].carrierCode}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full uppercase">Amadeus Real-Time</span>
-                      <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase">Vuelo {vuelo.itineraries[0].segments[0].number}</span>
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight italic">
-                      {origenFinal} <span className="text-orange-500 mx-2">→</span> {destinoFinal}
-                    </h3>
-                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
-                      Salida: {new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} hrs
-                    </p>
-                  </div>
-                </div>
+            {vuelos.map((vuelo, idx) => {
+              const vueloIdUnico = vuelo.api_id || vuelo.id || `MOCK-${idx}`;
+              const esFavorito = favoritosIds.includes(vueloIdUnico);
 
-                <div className="text-center md:text-right mt-6 md:mt-0">
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Precio Total</p>
-                  <p className="text-5xl font-black text-slate-900 tracking-tighter mb-4">
-                    ${vuelo.price.total} <span className="text-lg text-slate-400">{vuelo.price.currency}</span>
-                  </p>
-                  <button
-                    onClick={() => {
-                      // MODIFICACIÓN: Empaquetamos explícitamente origenFinal y destinoFinal reales de la búsqueda
-                      const datosVueloParaComprar = {
-                        ...vuelo,
-                        origen: origenFinal,
-                        destino: destinoFinal,
-                        precio: vuelo.precio || (vuelo.price ? parseFloat(vuelo.price.total) : 12500),
-                        moneda: vuelo.moneda || (vuelo.price ? vuelo.price.currency : "MXN"),
-                        aerolinea: vuelo.aerolinea || "Aeroméxico",
-                        hora_salida: new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                        fecha: new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-                      };
-                      localStorage.setItem('vuelo_seleccionado', JSON.stringify(datosVueloParaComprar));
-                      router.push('/cliente/menupr/comprar');
-                    }}
-                    className="bg-[#4d7c44] hover:bg-green-700 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-lg shadow-green-100 uppercase text-xs tracking-widest cursor-pointer"
-                  >
-                    Seleccionar Vuelo
-                  </button>
+              return (
+                <div key={idx} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between group hover:shadow-2xl transition-all duration-500">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white font-black text-xl shadow-lg">
+                      {vuelo.itineraries[0].segments[0].carrierCode}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full uppercase">Amadeus Real-Time</span>
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase">Vuelo {vuelo.itineraries[0].segments[0].number}</span>
+                      </div>
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight italic">
+                        {origenFinal} <span className="text-orange-500 mx-2">→</span> {destinoFinal}
+                      </h3>
+                      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                        Salida: {new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} hrs
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-center md:text-right mt-6 md:mt-0 flex flex-col items-center md:items-end justify-center gap-3">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Precio Total</p>
+                      <p className="text-5xl font-black text-slate-900 tracking-tighter">
+                        ${vuelo.price.total} <span className="text-lg text-slate-400">{vuelo.price.currency}</span>
+                      </p>
+                    </div>
+
+                    {/* BOTONES DE ACCIÓN AGRUPADOS CON LA ESTRELLA INTERACTIVA */}
+                    <div className="flex items-center gap-3 w-full justify-center md:justify-end">
+
+                      {/* BOTÓN ESTRELLA DE FAVORITOS */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFavorito(vueloIdUnico)}
+                        disabled={loadingEstrella === vueloIdUnico}
+                        className="p-3.5 rounded-2xl bg-slate-50 hover:bg-amber-50 border border-slate-200 shadow-sm transition-all flex items-center justify-center cursor-pointer disabled:opacity-40"
+                        title={esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"}
+                      >
+                        {loadingEstrella === vueloIdUnico ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
+                        ) : (
+                          <Star
+                            className={`w-5 h-5 transition-transform duration-300 hover:scale-125 ${
+                              esFavorito ? 'fill-amber-400 text-amber-500' : 'text-slate-400'
+                            }`}
+                          />
+                        )}
+                      </button>
+
+                      {/* BOTÓN SELECCIONAR VUELO (WIZARD DE COMPRA) */}
+                      <button
+                        onClick={() => {
+                          const datosVueloParaComprar = {
+                            ...vuelo,
+                            api_id: vueloIdUnico,
+                            origen: origenFinal,
+                            destino: destinoFinal,
+                            precio: vuelo.precio || (vuelo.price ? parseFloat(vuelo.price.total) : 12500),
+                            moneda: vuelo.moneda || (vuelo.price ? vuelo.price.currency : "MXN"),
+                            aerolinea: vuelo.aerolinea || vuelo.itineraries[0].segments[0].carrierCode || "Aeroméxico",
+                            hora_salida: new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                            fecha: new Date(vuelo.itineraries[0].segments[0].departure.at).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                          };
+                          localStorage.setItem('vuelo_seleccionado', JSON.stringify(datosVueloParaComprar));
+                          router.push('/cliente/menupr/comprar');
+                        }}
+                        className="bg-[#4d7c44] hover:bg-green-700 text-white px-8 py-3.5 rounded-2xl font-black transition-all shadow-lg shadow-green-100 uppercase text-xs tracking-widest cursor-pointer flex-1 md:flex-initial"
+                      >
+                        Seleccionar Vuelo
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {!loading && vuelos.length === 0 && !error && (
               <div className="text-center py-20 bg-white rounded-[4rem] border-2 border-dashed border-slate-200">
