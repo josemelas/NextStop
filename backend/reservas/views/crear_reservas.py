@@ -43,7 +43,7 @@ class CrearReserva(APIView):
 
                 try:
                     usuario_comprador = reserva.id_usuario
-                    asunto_correo = f"✈️ Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
+                    asunto_correo = f" Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
                     fecha = vuelo.fecha_salida.strftime("%d/%m/%Y")
                     hora = vuelo.fecha_salida.strftime("%H:%M")
 
@@ -58,7 +58,7 @@ class CrearReserva(APIView):
                                     Código de Confirmación: {reserva.codigo_confirmacion}
                                     Aerolínea: {vuelo.aerolinea}
                                     Código de Vuelo: {vuelo.codigo_vuelo}
-                                    Ruta: {vuelo.origen} ➡️ {vuelo.destino}
+                                    Ruta: {vuelo.origen} ------> {vuelo.destino}
                                     Fecha de Salida: {fecha}
                                     Hora de Salida: {hora} HRS
                                     Asiento(s) Asignado(s): {reserva.asiento_asignado if reserva.asiento_asignado else 'Por asignar'}
