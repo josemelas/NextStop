@@ -5,7 +5,7 @@ import { Plane, Calendar, MapPin, Globe, Loader2, ArrowLeft, Users, CreditCard, 
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { reservasService } from '@/frontend/lib/reservasService'; // CORRECCIÓN: Ruta e importación exacta en minúsculas
+import { reservasService } from '@/lib/reservasService';
 
 const FILAS_AVION = [
   { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'OCUPADO' }, { id: '1D', tipo: 'OCUPADO' }, { id: '1E', tipo: 'OCUPADO' }, { id: '1F', tipo: 'PREMIUM' }] },
