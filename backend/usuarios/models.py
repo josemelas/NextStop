@@ -41,6 +41,7 @@ class Usuario(models.Model):
     email_verificado = models.BooleanField(default=False)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
+    foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
 
     class Meta:
         managed = False

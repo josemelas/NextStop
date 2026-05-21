@@ -10,7 +10,7 @@ class EditarPerfil(APIView):
     permission_classes = []
 
     def patch(self, request):
-        auth_header = request.header.get('Authorization')
+        auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
             return Response({"detail": "No autorizado"}, status=401)
         try:
@@ -38,6 +38,9 @@ class EditarPerfil(APIView):
 
         if 'password' in data:
             usuario.password_hash = make_password(data.get('password'))
+
+        if 'foto' in request.FILES:
+            usuario.foto_perfil = request.FILES['foto']
 
         usuario.save()
 
