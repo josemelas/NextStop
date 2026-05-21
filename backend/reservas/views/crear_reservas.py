@@ -77,7 +77,7 @@ class CrearReserva(APIView):
                     send_mail(
                         subject=asunto_correo,
                         message=mensaje_cuerpo,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        from_email=settings.EMAIL_HOST_USER,
                         recipient_list=[usuario_comprador.email],
                         fail_silently=False,
                     )
