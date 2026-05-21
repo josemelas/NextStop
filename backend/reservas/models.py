@@ -1,5 +1,6 @@
 from django.db import models
-
+from usuarios.models import Usuario
+from vuelos.models import Vuelo
 
 class Reserva(models.Model):
     id_reserva = models.AutoField(primary_key=True)
@@ -22,7 +23,7 @@ class Reserva(models.Model):
         default=PENDIENTE,
     )
     cantidad_pasajeros = models.IntegerField(default=1)
-    asiento_asignados = models.CharField(max_length=20)
+    asiento_asignado = models.CharField(max_length=10, null=True, blank=True)
 
     class Meta:
         db_table = 'reserva'
@@ -31,4 +32,4 @@ class Reserva(models.Model):
     def __str__(self):
         return (
             f"{self.Usuario} - {self.Vuelo} - {self.codigo_confirmacion} - {self.fecha_transaccion} - {self.monto_total} - {self.estado_pago} - "
-            f"{self.cantidad_pasajeros} - {self.asiento_asignados}")
+            f"{self.cantidad_pasajeros} - {self.asiento_asignado}")
