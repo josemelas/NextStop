@@ -4,7 +4,6 @@ import uuid
 import random
 from datetime import datetime, date
 from django.utils.timezone import make_aware
-from reservas.views import reservas
 from vuelos.models import Vuelo, Proveedorapi
 from reservas.models import Reserva
 
