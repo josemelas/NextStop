@@ -46,7 +46,6 @@ export default function AdminDashboard() {
           return;
         }
 
-        // Consumimos el método unificado que ya tiene el dominio oficial /api
         const res = await adminService.obtenerEstadisticas(tokenJWT);
 
         if (res.status === 200) {
@@ -152,7 +151,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* MANEJO DE ALERTAS POR ERRORES DE AUTENTICACIÓN / API */}
+          {/* MANEJO DE ALERTAS POR ERRORES DE API */}
           {errorApi && (
             <div className="bg-red-50 border border-red-200 text-red-800 font-bold text-sm p-5 rounded-3xl flex items-center gap-3 shadow-sm">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
@@ -245,8 +244,9 @@ export default function AdminDashboard() {
                           <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-4 pl-4 font-bold text-slate-900">{agencia.nombre}</td>
                             <td className="py-4">
+                              {/* CORREGIDO: Removido el $.trim() que rompía la compilación */}
                               <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
-                                $.trim(agencia.estado) === 'Activo'
+                                agencia.estado?.trim() === 'Activo'
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                 : 'bg-red-50 text-red-700 border-red-200'
                               }`}>
