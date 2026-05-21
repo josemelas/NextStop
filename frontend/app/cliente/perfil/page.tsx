@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { User, Mail, Phone, Lock, Camera, Loader2, CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { usuariosService } from '@/lib/usuariosService';
 
 export default function MiPerfilCliente() {
   // Estados para los campos del perfil
@@ -12,18 +13,24 @@ export default function MiPerfilCliente() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Estado para la foto de perfil (Simulada con Base64 o URL)
-  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+  // Estados para manejo de archivos
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null); // Previsualización visual
+  const [archivoFoto, setArchivoFoto] = useState<File | null>(null); // Archivo binario real para Django
+  const [tokenJWT, setTokenJWT] = useState("");
 
   // Estados de control de la UI
   const [loading, setLoading] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [errorValidacion, setErrorValidacion] = useState("");
 
-  // Carga inicial de los datos desde el localStorage
+  // Carga inicial de los datos reales desde el localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userDataString = localStorage.getItem("user_data");
+      const tokenGuardado = localStorage.getItem("auth_token") || localStorage.getItem("access_token") || "";
+
+      setTokenJWT(tokenGuardado);
+
       if (userDataString) {
         try {
           const user = JSON.parse(userDataString);
@@ -40,19 +47,20 @@ export default function MiPerfilCliente() {
     }
   }, []);
 
-  // Manejador para cargar y previsualizar la foto de perfil
+  // Manejador para capturar tanto la vista previa como el archivo real binario
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setArchivoFoto(file); // Guardamos el archivo binario para mandarlo a Django
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFotoPerfil(reader.result as string);
+        setFotoPerfil(reader.result as string); // Vista previa en base64 en la UI
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Guardado de datos
   const handleGuardarPerfil = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorValidacion("");
@@ -65,42 +73,65 @@ export default function MiPerfilCliente() {
       return;
     }
 
-    // 2. Validar contraseñas si el usuario escribió algo en el campo de password
+    // 2. Validar contraseñas si el usuario escribió algo
     if (password && password !== confirmPassword) {
       setErrorValidacion("Las contraseñas nuevas no coinciden entre sí.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
+    if (!tokenJWT) {
+      setErrorValidacion("Sesión inválida o expirada. Vuelve a iniciar sesión.");
+      return;
+    }
+
     setLoading(true);
 
-    // Simulamos un delay de red para actualizar el backend de DigitalOcean
-    setTimeout(() => {
+    // 3. Empaquetado estricto en FormData como requiere la arquitectura de Brian
+    const perfilFormData = new FormData();
+    perfilFormData.append('nombre', nombre.trim());
+    perfilFormData.append('email', email.trim());
+    perfilFormData.append('telefono', telefono.trim());
+
+    if (password) {
+      perfilFormData.append('password', password);
+    }
+
+    if (archivoFoto) {
+      perfilFormData.append('foto', archivoFoto); // Vinculado a request.FILES['foto'] de Django
+    }
+
+    // Ejecutamos la petición hacia DigitalOcean
+    const res = await usuariosService.actualizarPerfil(perfilFormData, tokenJWT);
+
+    if (res.status === 200) {
       if (typeof window !== "undefined") {
         const userDataString = localStorage.getItem("user_data");
         let currentUser = userDataString ? JSON.parse(userDataString) : {};
 
-        // Actualizamos el objeto local del usuario
+        // Sincronizamos las nuevas respuestas seguras que dictó Brian en su return Response
         const usuarioActualizado = {
           ...currentUser,
-          nombre: nombre.trim(),
-          email: email.trim(),
-          telefono: telefono.trim(),
-          foto_perfil: fotoPerfil
+          nombre: res.data.usuario.nombre,
+          email: res.data.usuario.email,
+          telefono: res.data.usuario.telefono,
+          foto_perfil: fotoPerfil // Mantener la previsualización local
         };
 
         localStorage.setItem("user_data", JSON.stringify(usuarioActualizado));
 
-        // Forzamos un pequeño evento para que el HeaderUsuario capte los cambios en caliente
+        // Disparador global para actualizar el HeaderUsuario en tiempo real sin recargar página
         window.dispatchEvent(new Event('storage'));
 
-        setMensajeExito("¡Tu perfil ha sido actualizado con éxito!");
+        setMensajeExito(res.data.detail || "¡Tu perfil ha sido actualizado con éxito!");
         setPassword("");
         setConfirmPassword("");
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      setLoading(false);
-    }, 1200);
+    } else {
+      setErrorValidacion(res.data.detail || "No se pudieron guardar los cambios en el servidor.");
+    }
+    setLoading(false);
   };
 
   return (
@@ -153,7 +184,7 @@ export default function MiPerfilCliente() {
               </div>
 
               <h3 className="font-black text-slate-900 text-lg tracking-tight leading-tight mb-1">{nombre || "Viajero"}</h3>
-              <span className="text-[10px] font-black bg-orange-100 text-orange-600 px-3 py-1 rounded-full uppercase tracking-wider">Cliente Gold</span>
+              {/* CORREGIDO: Se removió por completo el badge de Cliente Gold */}
             </div>
 
             {/* PANEL CENTRAL/DERECHO: CAMPOS EDICIÓN FORMULARIO */}
@@ -225,7 +256,7 @@ export default function MiPerfilCliente() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    <span>Guardando Cambios...</span>
+                    <span>Guardando en Servidor...</span>
                   </>
                 ) : (
                   <>

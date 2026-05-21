@@ -121,7 +121,7 @@ export function HeaderUsuario() {
     <header className="flex justify-between items-center mb-12">
       <div className="invisible italic text-slate-400">Navegación</div>
 
-      {/* INTEGRADO: Link interactivo hacia la vista de mi perfil con efectos hover */}
+      {/* CORREGIDO: Envoltura Link interactiva hacia mi perfil y removido el texto 'Cliente Gold' */}
       <Link
         href="/cliente/perfil"
         className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100 hover:border-orange-500/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
@@ -131,7 +131,6 @@ export function HeaderUsuario() {
         </div>
         <div>
           <p className="text-sm font-black text-slate-900 group-hover:text-orange-500 transition-colors">{nombreMostrar}</p>
-          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
         </div>
       </Link>
     </header>
