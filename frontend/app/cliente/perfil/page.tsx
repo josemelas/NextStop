@@ -14,8 +14,8 @@ export default function MiPerfilCliente() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Estados para manejo de archivos
-  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null); // Previsualización visual
-  const [archivoFoto, setArchivoFoto] = useState<File | null>(null); // Archivo binario real para Django
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
+  const [archivoFoto, setArchivoFoto] = useState<File | null>(null);
   const [tokenJWT, setTokenJWT] = useState("");
 
   // Estados de control de la UI
@@ -23,11 +23,11 @@ export default function MiPerfilCliente() {
   const [mensajeExito, setMensajeExito] = useState("");
   const [errorValidacion, setErrorValidacion] = useState("");
 
-  // Carga inicial de los datos reales desde el localStorage
+  // Carga inicial sincronizada con la llave user_token del Login
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userDataString = localStorage.getItem("user_data");
-      const tokenGuardado = localStorage.getItem("auth_token") || localStorage.getItem("access_token") || "";
+      const tokenGuardado = localStorage.getItem("user_token") || "";
 
       setTokenJWT(tokenGuardado);
 
@@ -47,15 +47,14 @@ export default function MiPerfilCliente() {
     }
   }, []);
 
-  // Manejador para capturar tanto la vista previa como el archivo real binario
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setArchivoFoto(file); // Guardamos el archivo binario para mandarlo a Django
+      setArchivoFoto(file);
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFotoPerfil(reader.result as string); // Vista previa en base64 en la UI
+        setFotoPerfil(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -66,14 +65,12 @@ export default function MiPerfilCliente() {
     setErrorValidacion("");
     setMensajeExito("");
 
-    // 1. Validar campos obligatorios vacíos
     if (!nombre.trim() || !email.trim() || !telefono.trim()) {
       setErrorValidacion("Por favor, rellena todos los campos obligatorios personales.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // 2. Validar contraseñas si el usuario escribió algo
     if (password && password !== confirmPassword) {
       setErrorValidacion("Las contraseñas nuevas no coinciden entre sí.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -87,7 +84,6 @@ export default function MiPerfilCliente() {
 
     setLoading(true);
 
-    // 3. Empaquetado estricto en FormData como requiere la arquitectura de Brian
     const perfilFormData = new FormData();
     perfilFormData.append('nombre', nombre.trim());
     perfilFormData.append('email', email.trim());
@@ -98,10 +94,9 @@ export default function MiPerfilCliente() {
     }
 
     if (archivoFoto) {
-      perfilFormData.append('foto', archivoFoto); // Vinculado a request.FILES['foto'] de Django
+      perfilFormData.append('foto', archivoFoto);
     }
 
-    // Ejecutamos la petición hacia DigitalOcean
     const res = await usuariosService.actualizarPerfil(perfilFormData, tokenJWT);
 
     if (res.status === 200) {
@@ -109,18 +104,15 @@ export default function MiPerfilCliente() {
         const userDataString = localStorage.getItem("user_data");
         let currentUser = userDataString ? JSON.parse(userDataString) : {};
 
-        // Sincronizamos las nuevas respuestas seguras que dictó Brian en su return Response
         const usuarioActualizado = {
           ...currentUser,
           nombre: res.data.usuario.nombre,
           email: res.data.usuario.email,
           telefono: res.data.usuario.telefono,
-          foto_perfil: fotoPerfil // Mantener la previsualización local
+          foto_perfil: fotoPerfil
         };
 
         localStorage.setItem("user_data", JSON.stringify(usuarioActualizado));
-
-        // Disparador global para actualizar el HeaderUsuario en tiempo real sin recargar página
         window.dispatchEvent(new Event('storage'));
 
         setMensajeExito(res.data.detail || "¡Tu perfil ha sido actualizado con éxito!");
@@ -146,7 +138,6 @@ export default function MiPerfilCliente() {
             <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Gestiona tu información personal y de seguridad</p>
           </div>
 
-          {/* ALERTAS DE CONTROL */}
           {errorValidacion && (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 font-bold text-sm p-5 rounded-3xl flex items-center gap-3 shadow-sm mb-6 animate-pulse">
               <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
@@ -163,7 +154,7 @@ export default function MiPerfilCliente() {
 
           <form onSubmit={handleGuardarPerfil} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start pb-20">
 
-            {/* PANEL IZQUIERDO: AVATAR / FOTO DE PERFIL */}
+            {/* PANEL IZQUIERDO: AVATAR */}
             <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-md flex flex-col items-center text-center">
               <label className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-wider">Foto de Perfil</label>
 
@@ -176,7 +167,6 @@ export default function MiPerfilCliente() {
                   )}
                 </div>
 
-                {/* BOTÓN OVERLAY PARA SUBIR IMAGEN */}
                 <label className="absolute bottom-1 right-1 bg-orange-500 hover:bg-orange-600 text-white p-2.5 rounded-full shadow-lg cursor-pointer transition-all hover:scale-110 flex items-center justify-center border-2 border-white">
                   <Camera className="w-4 h-4" />
                   <input type="file" accept="image/*" onChange={handleFotoChange} className="hidden" />
@@ -184,13 +174,11 @@ export default function MiPerfilCliente() {
               </div>
 
               <h3 className="font-black text-slate-900 text-lg tracking-tight leading-tight mb-1">{nombre || "Viajero"}</h3>
-              {/* CORREGIDO: Se removió por completo el badge de Cliente Gold */}
             </div>
 
-            {/* PANEL CENTRAL/DERECHO: CAMPOS EDICIÓN FORMULARIO */}
+            {/* PANEL DERECHO: FORMULARIO */}
             <div className="lg:col-span-2 space-y-6">
 
-              {/* BLOQUE DATOS PERSONALES */}
               <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
                 <h4 className="font-black text-sm text-slate-900 uppercase tracking-wider border-b border-slate-50 pb-2">Información Personal</h4>
 
@@ -221,7 +209,6 @@ export default function MiPerfilCliente() {
                 </div>
               </div>
 
-              {/* BLOQUE SEGURIDAD / CONTRASEÑA */}
               <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
                 <div>
                   <h4 className="font-black text-sm text-slate-900 uppercase tracking-wider border-b border-slate-50 pb-1">Seguridad de la Cuenta</h4>
@@ -247,7 +234,6 @@ export default function MiPerfilCliente() {
                 </div>
               </div>
 
-              {/* BOTÓN ACCIÓN GUARDAR */}
               <button
                 type="submit"
                 disabled={loading}
