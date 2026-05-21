@@ -12,9 +12,9 @@ export function SidebarCliente() {
 
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
-    { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
-    { name: 'Favoritos', href: '/cliente/menupr/favoritos', icon: Heart },
-    { name: 'Mi Perfil', href: '/cliente/menupr/perfil', icon: User },
+    { name: 'Mis Boletos', href: '/cliente/boletos', icon: Ticket },
+    { name: 'Favoritos', href: '/cliente/favoritos', icon: Heart },
+    { name: 'Mi Perfil', href: '/cliente/perfil', icon: User },
   ];
 
   if (showAdmin) {
