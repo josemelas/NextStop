@@ -53,6 +53,6 @@ class EditarPerfil(APIView):
                 "email": usuario.email,
                 "telefono": usuario.telefono,
                 "foto_perfil": usuario.foto_perfil.url if usuario.foto_perfil else None,
-                "is_superuser": usuario.is_superuser
+                "rol": usuario.rol
             }
         }, status=200)  
