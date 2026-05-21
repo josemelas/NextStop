@@ -284,7 +284,7 @@ export default function ReservarVueloWizard() {
                                 if (esSeleccionado) claseColor = "bg-[#4d7c44] text-white border-[#4d7c44]";
 
                                 return (
-                                  <button key={asiento.id} type="button" onClick={() => toggleAsiento(asiento.id, asiento.tipo)} className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${claseColor}`}>
+                                  <button key={asiento.id} type="button" onClick={() => toggleAsiento(asiento.id || '', asiento.tipo || '')} className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${claseColor}`}>
                                     {asiento.id}
                                   </button>
                                 );
