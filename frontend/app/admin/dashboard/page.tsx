@@ -46,6 +46,7 @@ export default function AdminDashboard() {
           return;
         }
 
+        // Consumimos el método unificado que ya tiene el dominio oficial /api
         const res = await adminService.obtenerEstadisticas(tokenJWT);
 
         if (res.status === 200) {
@@ -219,7 +220,7 @@ export default function AdminDashboard() {
               <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm p-8">
                 <div className="mb-6">
                   <h4 className="font-black text-lg text-slate-900 uppercase tracking-tight">Rendimiento e Ingresos por Proveedor API</h4>
-                  <p className="text-[11px] text-slate-400 font-bold uppercase mt-0.5">Top 5 agencias externas ordenadas de mayor a menor recaudación de transacciones pagadas</p>
+                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-0.5">Top 5 agencias externas ordenadas de mayor a menor recaudación de transacciones pagadas</p>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -245,7 +246,7 @@ export default function AdminDashboard() {
                             <td className="py-4 pl-4 font-bold text-slate-900">{agencia.nombre}</td>
                             <td className="py-4">
                               <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
-                                agencia.estado === 'Activo'
+                                $.trim(agencia.estado) === 'Activo'
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                 : 'bg-red-50 text-red-700 border-red-200'
                               }`}>
