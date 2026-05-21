@@ -11,6 +11,7 @@ class EditarPerfil(APIView):
 
     def patch(self, request):
         auth_header = request.headers.get('Authorization')
+        print(f"----> HEADER RECIBIDO: {auth_header}")
         if not auth_header or not auth_header.startswith('Bearer '):
             return Response({"detail": "No autorizado"}, status=401)
         try:
