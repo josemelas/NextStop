@@ -87,5 +87,6 @@ class LoginUsuario(APIView):
                 'idioma_preferido': usuario.idioma_preferido,
                 'moneda_preferida': usuario.moneda_preferida,
                 'rol': nombre_rol,
+                "foto_perfil": usuario.foto_perfil.url if usuario.foto_perfil else None,
             }
         }, status=status.HTTP_200_OK)

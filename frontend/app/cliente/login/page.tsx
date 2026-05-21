@@ -24,6 +24,7 @@ export default function ClientLogin() {
       const { ok, data } = await authService.login(email, password);
 
       if (ok) {
+        console.log("Datos recibidos del backend:", data.usuario);
         // 2. Modificación: Guardamos el token de acceso y la info del usuario en localStorage
         // El backend de Brian anida el JWT dentro de data.token.access
         localStorage.setItem('user_token', data.token.access);
