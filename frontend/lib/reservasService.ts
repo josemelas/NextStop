@@ -1,4 +1,4 @@
-// app/lib/reservasService.ts
+// frontend/lib/reservasService.ts
 export const reservasService = {
   async crearReserva(payload: {
     vuelo_id: string;
@@ -8,6 +8,7 @@ export const reservasService = {
     monto_total: number;
   }) {
     try {
+      // IMPORTANTE: Asegúrate de usar la URL absoluta con la diagonal al final de crearreservas/
       const response = await fetch('https://seal-app-u4egd.ondigitalocean.app/crearreservas/', {
         method: 'POST',
         headers: {
