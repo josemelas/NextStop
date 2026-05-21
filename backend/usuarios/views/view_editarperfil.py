@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
-from ..models import Usuario
+from ..models import Usuario, Usuario_rol
 
 class EditarPerfil(APIView):
     authentication_classes = []
@@ -43,6 +43,9 @@ class EditarPerfil(APIView):
         if 'foto' in request.FILES:
             usuario.foto_perfil = request.FILES['foto']
 
+        relacion_rol = Usuario_rol.objects.filter(usuario=usuario).first()
+        rol_del_usuario = relacion_rol.rol.nombre if relacion_rol else None
+
         usuario.save()
 
         return Response({
@@ -53,6 +56,6 @@ class EditarPerfil(APIView):
                 "email": usuario.email,
                 "telefono": usuario.telefono,
                 "foto_perfil": usuario.foto_perfil.url if usuario.foto_perfil else None,
-                "rol": usuario.rol
+                "rol": rol_del_usuario
             }
         }, status=200)  
