@@ -5,7 +5,7 @@ import { Plane, Calendar, MapPin, Globe, Loader2, ArrowLeft, Users, CreditCard, 
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { reservasService } from '@/app/lib/ReservasService'; // Importamos el nuevo servicio
+import { reservasService } from '@/frontend/lib/reservasService'; // CORRECCIÓN: Ruta e importación exacta en minúsculas
 
 const FILAS_AVION = [
   { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'OCUPADO' }, { id: '1D', tipo: 'OCUPADO' }, { id: '1E', tipo: 'OCUPADO' }, { id: '1F', tipo: 'PREMIUM' }] },
@@ -32,7 +32,6 @@ export default function ReservarVueloWizard() {
   const [loadingCompra, setLoadingCompra] = useState(false);
   const [compraExitosa, setCompraExitosa] = useState(false);
 
-  // Estado para capturar el código oficial devuelto por Brian y errores del back
   const [codigoConfirmacionBackend, setCodigoConfirmacionBackend] = useState("");
   const [errorBackend, setErrorBackend] = useState("");
 
@@ -106,14 +105,12 @@ export default function ReservarVueloWizard() {
     }
   };
 
-  // CONEXIÓN CON EL ENDPOINT POST DE CREARRESERVA
   const ejecutarCompraRealBackend = async () => {
     setLoadingCompra(true);
     setErrorBackend("");
 
-    // 1. Extraemos el id_usuario desde los datos del usuario logueado en el localStorage
     const userDataString = localStorage.getItem("user_data");
-    let usuarioIdReal = 1; // Fallback seguro por si acaso
+    let usuarioIdReal = 1;
 
     if (userDataString) {
       try {
@@ -124,24 +121,21 @@ export default function ReservarVueloWizard() {
       }
     }
 
-    // 2. Mapeamos el payload exacto exigido por la API de Brian
     const payloadReserva = {
-      vuelo_id: vuelo.api_id || vuelo.id || "API-MOCK-ID", // Prioridad al identificador que use el modelo de Vuelo
+      vuelo_id: vuelo.api_id || vuelo.id || "API-MOCK-ID",
       usuario_id: usuarioIdReal,
       cantidad_pasajeros: cantidadPasajeros,
-      asientos: asientosSeleccionados.join(', '), // Los mandamos como String ("6B, 6D")
+      asientos: asientosSeleccionados.join(', '),
       monto_total: precioFinalTotal
     };
 
-    // 3. Disparamos la petición HTTP al Backend
     const res = await reservasService.crearReserva(payloadReserva);
 
     if (res.status === 201) {
       setCodigoConfirmacionBackend(res.data.codigo_confirmacion);
 
-      // Guardamos la respuesta estructurada en tu historial local para que la pantalla de "Boletos" lo renderice
       const nuevoBoletoHistorial = {
-        id_compra: res.data.codigo_confirmacion, // Usamos el código oficial de Django
+        id_compra: res.data.codigo_confirmacion,
         aerolinea,
         origen: origenCodigo,
         destino: destinoCodigo,
@@ -161,7 +155,6 @@ export default function ReservarVueloWizard() {
 
       setCompraExitosa(true);
     } else {
-      // Si el backend responde con error de falta de asientos (400) o no disponible (404)
       setErrorBackend(res.data.error || "No se pudo completar el cobro de la reserva.");
     }
     setLoadingCompra(false);
@@ -225,7 +218,7 @@ export default function ReservarVueloWizard() {
                   </div>
                 )}
 
-                {/* CARD RESUMEN DEL TRÁYECTO */}
+                {/* CARD RESUMEN DEL TRAYECTO */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -457,7 +450,7 @@ export default function ReservarVueloWizard() {
 
                 {step === 3 && (
                   <button
-                    onClick={ejecutarCompraRealBackend} // Cambiado a la función que conecta al backend de Django
+                    onClick={ejecutarCompraRealBackend}
                     disabled={loadingCompra}
                     className="w-full bg-[#4d7c44] hover:bg-green-700 text-white font-black py-4 rounded-xl transition-all uppercase text-xs tracking-widest shadow-md flex items-center justify-center gap-2 cursor-pointer"
                   >
@@ -465,7 +458,7 @@ export default function ReservarVueloWizard() {
                   </button>
                 )}
 
-                {/* BOTÓN VOLVER (SÓLO DENTRO DEL ASISTENTE) */}
+                {/* BOTÓN VOLVER */}
                 {step > 1 && (
                   <button
                     onClick={() => setStep(prev => prev - 1)}
