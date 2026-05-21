@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAdmin } from '@/lib/adminGuard';
-import { adminService } from '@/lib/adminService'; // Importamos el nuevo servicio
+import { adminService } from '@/lib/adminService';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { Shield, Search, Filter, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 
@@ -14,47 +14,58 @@ export default function GestionRolesReal() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 1. Verificación de Seguridad
+  // 1. Verificación de Seguridad y obtención de Token
   useEffect(() => {
-    if (!isAdmin()) {
-      router.push('/cliente/menupr');
-    } else {
-      setAuthorized(true);
-      cargarUsuarios();
+    if (typeof window !== "undefined") {
+      if (!isAdmin()) {
+        router.push('/cliente/menupr');
+      } else {
+        setAuthorized(true);
+        const tokenJWT = localStorage.getItem("user_token") || "";
+        cargarUsuarios(tokenJWT);
+      }
     }
   }, [router]);
 
-  // 2. Cargar usuarios desde el backend
-  const cargarUsuarios = async () => {
+  // 2. Cargar usuarios desde el backend (Requiere token)
+  const cargarUsuarios = async (token: string) => {
     setLoading(true);
-    const data = await adminService.obtenerUsuarios();
+    const data = await adminService.obtenerUsuarios(token);
     if (Array.isArray(data)) {
       setUsuarios(data);
     }
     setLoading(false);
   };
 
-  // 3. Funciones de Gestión
+  // 3. Funciones de Gestión (Requieren token)
   const handleCambiarRol = async (usuarioId: number, nuevoRol: string) => {
-    const res = await adminService.actualizarRoles(usuarioId, [nuevoRol]);
+    const tokenJWT = localStorage.getItem("user_token") || "";
+    const res = await adminService.actualizarRoles(usuarioId, [nuevoRol], tokenJWT);
     if (!res.error) {
-      cargarUsuarios(); // Recargamos para confirmar el cambio
+      cargarUsuarios(tokenJWT); // Recargamos para confirmar el cambio
     }
   };
 
   const handleEliminar = async (usuarioId: number, nombre: string) => {
     if (window.confirm(`¿Estás seguro de eliminar a ${nombre} del sistema?`)) {
-      const res = await adminService.eliminarUsuario(usuarioId);
+      const tokenJWT = localStorage.getItem("user_token") || "";
+      const res = await adminService.eliminarUsuario(usuarioId, tokenJWT);
       if (!res.error) {
-        cargarUsuarios();
+        cargarUsuarios(tokenJWT);
       }
     }
   };
 
+  // Manejador del botón de recarga manual
+  const handleRecargarManual = () => {
+    const tokenJWT = localStorage.getItem("user_token") || "";
+    cargarUsuarios(tokenJWT);
+  };
+
   // 4. Filtrado en tiempo real
   const usuariosFiltrados = usuarios.filter(u =>
-    u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    u.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (!authorized) return null;
@@ -76,7 +87,7 @@ export default function GestionRolesReal() {
               <p className="text-slate-400 font-medium">Sincronizado con la base de datos de NextStop</p>
             </div>
             <button
-              onClick={cargarUsuarios}
+              onClick={handleRecargarManual}
               className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all flex items-center gap-2 font-bold text-xs"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-500' : ''}`} />
@@ -122,18 +133,24 @@ export default function GestionRolesReal() {
                     </tr>
                   </thead>
                   <tbody>
-                    {usuariosFiltrados.map((u) => (
-                      <UserRow
-                        key={u.id_usuario}
-                        id={u.id_usuario}
-                        name={u.nombre}
-                        email={u.email}
-                        role={u.roles[0] || "Cliente"}
-                        activo={u.activo}
-                        onRoleChange={handleCambiarRol}
-                        onDelete={handleEliminar}
-                      />
-                    ))}
+                    {usuariosFiltrados.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-500 font-bold">No se encontraron usuarios.</td>
+                      </tr>
+                    ) : (
+                      usuariosFiltrados.map((u) => (
+                        <UserRow
+                          key={u.id_usuario || u.id}
+                          id={u.id_usuario || u.id}
+                          name={u.nombre || "Usuario"}
+                          email={u.email}
+                          role={u.roles?.[0] || "Cliente"}
+                          activo={u.activo !== undefined ? u.activo : true}
+                          onRoleChange={handleCambiarRol}
+                          onDelete={handleEliminar}
+                        />
+                      ))
+                    )}
                   </tbody>
                 </table>
               )}
@@ -156,7 +173,7 @@ function UserRow({ id, name, email, role, activo, onRoleChange, onDelete }: any)
     <tr className="bg-slate-800/20 hover:bg-slate-800/40 transition-all group">
       <td className="px-6 py-5 rounded-l-3xl border-l border-t border-b border-slate-800/50">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-black text-orange-500 shadow-inner">
+          <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-black text-orange-500 shadow-inner uppercase">
             {name.charAt(0)}
           </div>
           <p className="font-black text-white italic">{name}</p>
