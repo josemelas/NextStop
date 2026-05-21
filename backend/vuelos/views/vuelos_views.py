@@ -24,7 +24,7 @@ class GeneradorVuelos(APIView):
         dias_antelacion = (fecha_vuelo - date.today()).days
         multiplicador_tiempo = 1.5 if dias_antelacion < 7 else (0.9 if dias_antelacion > 30 else 1.0)
 
-        vuelos_bd = Vuelo.objects.filter(origen=origen, destino=destino, fecha_salida__startswith=fecha_salida_str)
+        vuelos_bd = Vuelo.objects.filter(origen=origen, destino=destino, fecha_salida__date=fecha_vuelo)
         if vuelos_bd.exists():
             return self.enviar_formato_frontend(vuelos_bd)
 
