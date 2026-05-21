@@ -7,6 +7,8 @@ from vuelos.models import Vuelo
 from reservas.models import Reserva
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 class CrearReserva(APIView):
     def post(self, request):
@@ -43,42 +45,28 @@ class CrearReserva(APIView):
 
                 try:
                     usuario_comprador = reserva.id_usuario
-                    asunto_correo = f" Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
-                    fecha = vuelo.fecha_salida.strftime("%d/%m/%Y")
-                    hora = vuelo.fecha_salida.strftime("%H:%M")
+                    asunto_correo = f"✈️ Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
 
-                    mensaje_cuerpo = f"""
-                                    ¡Hola {usuario_comprador.nombre}! 
+                    contexto = {
+                        "nombre_usuario": usuario_comprador.nombre,
+                        "codigo_confirmacion": reserva.codigo_confirmacion,
+                        "origen": vuelo.origen,
+                        "destino": vuelo.destino,
+                        "fecha": vuelo.fecha_salida.strftime("%d/%m/%Y"),
+                        "hora": vuelo.fecha_salida.strftime("%H:%M"),
+                        "asientos": reserva.asiento_asignado if reserva.asiento_asignado else 'Por asignar',
+                        "monto": reserva.monto_total
+                    }
 
-                                    Tu pago ha sido procesado de manera segura. Aquí tienes los detalles de tu próximo viaje con NextStop:
-
-                                    =========================================
-                                         PASE DE ABORDAJE DIGITAL
-                                    =========================================
-                                    Código de Confirmación: {reserva.codigo_confirmacion}
-                                    Aerolínea: {vuelo.aerolinea}
-                                    Código de Vuelo: {vuelo.codigo_vuelo}
-                                    Ruta: {vuelo.origen} ------> {vuelo.destino}
-                                    Fecha de Salida: {fecha}
-                                    Hora de Salida: {hora} HRS
-                                    Asiento(s) Asignado(s): {reserva.asiento_asignado if reserva.asiento_asignado else 'Por asignar'}
-                                    Pasajeros: {reserva.cantidad_pasajeros}
-                                    -----------------------------------------
-                                    Monto Total Cargado: ${reserva.monto_total} MXN
-                                    =========================================
-
-                                    Ya puedes consultar tu boleto y el código QR desde tu Perfil en nuestra aplicación.
-
-                                    ¡Gracias por confiar en NextStop y que tengas un excelente viaje!
-
-                                    El equipo de NextStop
-                                    """
+                    html_mensaje = render_to_string('reservas/email_confirmacion.html', contexto)
+                    mensaje_texto = strip_tags(html_mensaje)
 
                     send_mail(
                         subject=asunto_correo,
-                        message=mensaje_cuerpo,
-                        from_email=settings.EMAIL_HOST_USER,
+                        message=mensaje_texto,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[usuario_comprador.email],
+                        html_message=html_mensaje,
                         fail_silently=False,
                     )
 
