@@ -12,7 +12,7 @@ export function SidebarCliente() {
 
   const links = [
     { name: 'Buscar Vuelos', href: '/cliente/menupr', icon: Search },
-    { name: 'Mis Boletos', href: '/cliente/boletos', icon: Ticket },
+    { name: 'Mis Boletos', href: '/cliente/menupr/boletos', icon: Ticket },
     { name: 'Favoritos', href: '/cliente/favoritos', icon: Heart },
     { name: 'Mi Perfil', href: '/cliente/perfil', icon: User },
   ];
@@ -87,14 +87,20 @@ export function SidebarCliente() {
 export function HeaderUsuario() {
   const [nombreMostrar, setNombreMostrar] = useState("Viajero");
   const [inicial, setInicial] = useState("V");
+  const [fotoMostrar, setFotoMostrar] = useState<string | null>(null); // Estado para rastrear la foto de perfil
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const userDataString = localStorage.getItem("user_data");
-      if (userDataString) {
-        try {
-          const user = JSON.parse(userDataString);
-          if (user && user.nombre) {
+  // Función encargada de mapear el localStorage de forma síncrona
+  const sincronizarDatosUsuario = () => {
+    const userDataString = localStorage.getItem("user_data");
+    if (userDataString) {
+      try {
+        const user = JSON.parse(userDataString);
+        if (user) {
+          // Sincronizar Foto de Perfil
+          setFotoMostrar(user.foto_perfil || null);
+
+          // Sincronizar Nombre y Apellido
+          if (user.nombre) {
             const palabras = user.nombre.trim().split(/\s+/);
 
             if (palabras.length > 0) {
@@ -110,10 +116,24 @@ export function HeaderUsuario() {
               setInicial(primerNombre.charAt(0).toUpperCase());
             }
           }
-        } catch (error) {
-          console.error("Error al leer el perfil de usuario:", error);
         }
+      } catch (error) {
+        console.error("Error al sincronizar el HeaderUsuario:", error);
       }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Carga inicial al montar el componente
+      sincronizarDatosUsuario();
+
+      // Escuchador global: reacciona inmediatamente al evento lanzado en tu perfil
+      window.addEventListener('storage', sincronizarDatosUsuario);
+
+      return () => {
+        window.removeEventListener('storage', sincronizarDatosUsuario);
+      };
     }
   }, []);
 
@@ -125,8 +145,13 @@ export function HeaderUsuario() {
         href="/cliente/perfil"
         className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100 hover:border-orange-500/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
       >
-        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20 group-hover:border-orange-500 transition-colors">
-          {inicial}
+        {/* Renderizado condicional: Muestra la foto real o la inicial según la disponibilidad de la data */}
+        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20 group-hover:border-orange-500 transition-colors overflow-hidden">
+          {fotoMostrar ? (
+            <img src={fotoMostrar} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            inicial
+          )}
         </div>
         <div>
           <p className="text-sm font-black text-slate-900 group-hover:text-orange-500 transition-colors">{nombreMostrar}</p>
