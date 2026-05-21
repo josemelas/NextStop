@@ -95,15 +95,12 @@ export function HeaderUsuario() {
         try {
           const user = JSON.parse(userDataString);
           if (user && user.nombre) {
-            // Limpiamos los espacios extras a los lados y separamos por palabras
             const palabras = user.nombre.trim().split(/\s+/);
 
             if (palabras.length > 0) {
-              // Tomamos el primer elemento como primer nombre
               const primerNombre = palabras[0].charAt(0).toUpperCase() + palabras[0].slice(1).toLowerCase();
               let nombreCompletoFormateado = primerNombre;
 
-              // Si hay más de una palabra, tomamos la segunda como primer apellido
               if (palabras.length > 1) {
                 const primerApellido = palabras[1].charAt(0).toUpperCase() + palabras[1].slice(1).toLowerCase();
                 nombreCompletoFormateado = `${primerNombre} ${primerApellido}`;
@@ -123,15 +120,20 @@ export function HeaderUsuario() {
   return (
     <header className="flex justify-between items-center mb-12">
       <div className="invisible italic text-slate-400">Navegación</div>
-      <div className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100">
-        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20">
+
+      {/* INTEGRADO: Link interactivo hacia la vista de mi perfil con efectos hover */}
+      <Link
+        href="/cliente/perfil"
+        className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100 hover:border-orange-500/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
+      >
+        <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20 group-hover:border-orange-500 transition-colors">
           {inicial}
         </div>
         <div>
-          <p className="text-sm font-black text-slate-900">{nombreMostrar}</p>
+          <p className="text-sm font-black text-slate-900 group-hover:text-orange-500 transition-colors">{nombreMostrar}</p>
           <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Cliente Gold</p>
         </div>
-      </div>
+      </Link>
     </header>
   );
 }
