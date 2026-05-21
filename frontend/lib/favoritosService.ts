@@ -1,17 +1,15 @@
 // frontend/lib/favoritosService.ts
 
-const BASE_URL = 'https://seal-app-u4egd.ondigitalocean.app';
+const BASE_URL = 'https://seal-app-u4egd.ondigitalocean.app/api'; // Integrado el /api global
 
 export const favoritosService = {
 
-  // 1. OBTENER LA LISTA DE FAVORITOS DEL USUARIO
+  // 1. OBTENER LISTA DE FAVORITOS
   async listarFavoritos(usuarioId: number) {
     try {
       const response = await fetch(`${BASE_URL}/favoritos/favoritos/listar/?usuario_id=${usuarioId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await response.json();
       return data;
@@ -21,14 +19,12 @@ export const favoritosService = {
     }
   },
 
-  // 2. AÑADIR UN NUEVO RECURSO A FAVORITOS
+  // 2. AÑADIR NUEVO FAVORITO
   async agregarFavorito(usuarioId: number, idRecurso: string, tipoRecurso: 'VUELO' | 'PAIS' | 'DESTINO' = 'VUELO') {
     try {
-      const response = await fetch(`${BASE_URL}/favoritos/favoritosa/agregar/`, { // Barra al final obligatoria
+      const response = await fetch(`${BASE_URL}/favoritos/favoritosa/agregar/`, { // Con barra diagonal final obligatoria
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           usuario_id: usuarioId,
           id_recurso: idRecurso,
@@ -44,14 +40,11 @@ export const favoritosService = {
   },
 
   // 3. ELIMINAR DE FAVORITOS
-  // Usamos los query params para que limpie el registro sin importar si estás en el buscador o en el panel de favoritos
   async eliminarFavorito(usuarioId: number, idRecurso: string, tipoRecurso: string = 'VUELO') {
     try {
-      const response = await fetch(`${BASE_URL}/favoritos/favoritos/eliminar/?usuario_id=${usuarioId}&id_recurso=${idRecurso}&tipo_recurso=${tipoRecurso}`, { // Barra al final obligatoria
+      const response = await fetch(`${BASE_URL}/favoritos/favoritos/eliminar/?usuario_id=${usuarioId}&id_recurso=${idRecurso}&tipo_recurso=${tipoRecurso}`, { // Con barra diagonal final obligatoria
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await response.json();
       return { status: response.status, data };
