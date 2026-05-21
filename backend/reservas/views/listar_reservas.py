@@ -18,11 +18,13 @@ class ListarReservas(APIView):
 
             for r in reservas:
                 vuelo = r.id_vuelo
-
+                fecha_compra_str = r.fecha_transaccion.strftime("%d/%m/%Y %H:%M") if r.fecha_transaccion else "Fecha no disponible"
+                fecha_salida_str = vuelo.fecha_salida.strftime("%Y-%m-%dT%H:%M:%S") if vuelo.fecha_salida else ""
+                fecha_llegada_str = vuelo.fecha_llegada.strftime("%Y-%m-%dT%H:%M:%S") if vuelo.fecha_llegada else ""
                 lista_reservas.append({
                     "id_reserva": r.id_reserva,
                     "codigo_confirmacion": r.codigo_confirmacion,
-                    "fecha_compra": r.fecha_transaccion.strftime("%d/%m/%Y %H:%M"),
+                    "fecha_compra": fecha_compra_str,
                     "monto_total": str(r.monto_total),
                     "estado_pago": r.estado_pago,
                     "cantidad_pasajeros": r.cantidad_pasajeros,
@@ -33,8 +35,8 @@ class ListarReservas(APIView):
                         "codigo_vuelo": vuelo.codigo_vuelo,
                         "origen": vuelo.origen,
                         "destino": vuelo.destino,
-                        "fecha_salida": vuelo.fecha_salida.strftime("%Y-%m-%dT%H:%M:%S"),
-                        "fecha_llegada": vuelo.fecha_llegada.strftime("%Y-%m-%dT%H:%M:%S")
+                        "fecha_salida": fecha_salida_str,
+                        "fecha_llegada": fecha_llegada_str
                     }
                 })
 
