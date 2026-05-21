@@ -7,11 +7,9 @@ export const isAdmin = () => {
   try {
     const user = JSON.parse(userDataString);
 
-    // Solo vips
-    const admins = user.rol === "Administrador";
+    const esRolCorrecto = user.rol === "Administrador";
 
-    // Verificamos si el correo del usuario logueado está en la lista
-    return admins.includes(user.email?.toLowerCase());
+    return esRolCorrecto;
   } catch (error) {
     return false;
   }
