@@ -14,7 +14,7 @@ const FILAS_AVION = [
   { numero: 4, asientos: [{ id: '4A', tipo: 'OCUPADO' }, { id: '4B', tipo: 'OCUPADO' }, { id: '4C', tipo: 'PREMIUM' }, { id: '4D', tipo: 'PREMIUM' }, { id: '4E', tipo: 'OCUPADO' }, { id: '4F', tipo: 'PREMIUM' }] },
   { numero: 5, asientos: [{ id: '5A', tipo: 'PREMIUM' }, { id: '5B', tipo: 'PREMIUM' }, { id: '5C', tipo: 'PREMIUM' }, { id: '5D', tipo: 'PREMIUM' }, { id: '5E', tipo: 'PREMIUM' }, { id: '5F', tipo: 'OCUPADO' }] },
   { numero: 6, asientos: [{ id: '6A', tipo: 'OCUPADO' }, { id: '6B', tipo: 'DISPONIBLE' }, { id: '6C', tipo: 'OCUPADO' }, { id: '6D', tipo: 'DISPONIBLE' }, { id: '6E', tipo: 'DISPONIBLE' }, { id: '6F', tipo: 'DISPONIBLE' }] },
-  { numero: 7, asientos: [{ id: '7A', tipo: 'OCUPADO' }, { id: '7B', tipo: 'OCUPADO' }, { id: '7C', tipo: 'DISPONIBLE' }, { id: '7D', tipo: 'OCUPADO' }, { id: '7E', tipo: 'DISPONIBLE' }, { id: '7F', tipo: 'DISPONIBLE' }] },
+  { numero: 7, asientos: [{ id: '7A', tipo: 'OCUPADO' }, { id: '7B', tipo: 'OCUPADO' }, { id: '7C', tipo: 'DISPONIBLE' }, { id: '7D', tipo: 'OCUPADO' }, { id: '7E', tipo: 'DISPONIBLE' }, { id: '7F', text: 'DISPONIBLE' }, { id: '7F', tipo: 'DISPONIBLE' }] },
   { numero: 8, asientos: [{ id: '8A', tipo: 'DISPONIBLE' }, { id: '8B', tipo: 'DISPONIBLE' }, { id: '8C', tipo: 'DISPONIBLE' }, { id: '8D', tipo: 'DISPONIBLE' }, { id: '8E', tipo: 'DISPONIBLE' }, { id: '8F', tipo: 'OCUPADO' }] },
   { numero: 9, asientos: [{ id: '9A', tipo: 'DISPONIBLE' }, { id: '9B', tipo: 'DISPONIBLE' }, { id: '9C', tipo: 'DISPONIBLE' }, { id: '9D', tipo: 'OCUPADO' }, { id: '9E', tipo: 'OCUPADO' }, { id: '9F', tipo: 'DISPONIBLE' }] },
 ];
@@ -49,7 +49,7 @@ export default function ReservarVueloWizard() {
   useEffect(() => {
     setDatosPasajeros(
       Array.from({ length: cantidadPasajeros }).map(() => ({
-        nombres: "", apellidos: "", fechaNacimiento: "", nacionalidad: "Mexicana", pasaporte: "", vencimientoPasaporte: "", correo: "", telefono: ""
+        nombres: "", apellidos: "", fechaNacimiento: "", nacionalidad: "Mexicana", tipoIdentificacion: "INE", pasaporte: "", correo: "", telefono: ""
       }))
     );
   }, [cantidadPasajeros]);
@@ -132,7 +132,7 @@ export default function ReservarVueloWizard() {
     const res = await reservasService.crearReserva(payloadReserva);
 
     if (res.status === 201) {
-      setCodigoConfirmacionBackend(res.data.codigo_confirmacion);
+      setCodigoConfirmacionBackend(res.data.codigo_confirmation || res.data.codigo_confirmacion);
 
       const nuevoBoletoHistorial = {
         id_compra: res.data.codigo_confirmacion,
@@ -339,14 +339,26 @@ export default function ReservarVueloWizard() {
                             <label className="text-xs font-bold">Nacionalidad</label>
                             <input type="text" value={pasajero.nacionalidad} onChange={(e) => handleInputChange(idx, 'nacionalidad', e.target.value)} placeholder="Mexicana" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
                           </div>
+
+                          {/* CAMBIO INTEGRADO: SELECTOR DE TIPO DE IDENTIFICACIÓN */}
                           <div className="space-y-1">
-                            <label className="text-xs font-bold">Número de Pasaporte / ID</label>
+                            <label className="text-xs font-bold">Tipo de Identificación</label>
+                            <select
+                              value={pasajero.tipoIdentificacion}
+                              onChange={(e) => handleInputChange(idx, 'tipoIdentificacion', e.target.value)}
+                              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold"
+                            >
+                              <option value="INE">INE (Credencial para votar)</option>
+                              <option value="Pasaporte">Pasaporte Internacional</option>
+                              <option value="Otra">Otra identificación oficial</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold">Número de Documento</label>
                             <input type="text" value={pasajero.pasaporte} onChange={(e) => handleInputChange(idx, 'pasaporte', e.target.value)} placeholder="ABC123456" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
                           </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold">Fecha de Vencimiento</label>
-                            <input type="date" value={pasajero.vencimientoPasaporte} onChange={(e) => handleInputChange(idx, 'vencimientoPasaporte', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-500" required />
-                          </div>
+
                           <div className="space-y-1 md:col-span-2">
                             <label className="text-xs font-bold">Correo Electrónico</label>
                             <input type="email" value={pasajero.correo} onChange={(e) => handleInputChange(idx, 'correo', e.target.value)} placeholder="juan@correo.com" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
