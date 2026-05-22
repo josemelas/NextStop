@@ -7,6 +7,8 @@ from reservas.models import Reserva
 
 
 class EstadisticasDashboard(APIView):
+    authentication_classes = []
+    permission_classes = []
     def get(self, request):
         hoy = timezone.now()
         mes_actual = hoy.month
