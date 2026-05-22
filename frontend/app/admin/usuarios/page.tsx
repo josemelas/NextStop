@@ -27,7 +27,13 @@ export default function GestionRolesReal() {
   // 2. Cargar usuarios desde el backend
   const cargarUsuarios = async () => {
     setLoading(true);
-    const data = await adminService.obtenerUsuarios();
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+        console.error("No hay sesión activa");
+        setLoading(false);
+        return;
+    }
+    const data = await adminService.obtenerUsuarios(token);
     if (Array.isArray(data)) {
       setUsuarios(data);
     }
@@ -36,15 +42,25 @@ export default function GestionRolesReal() {
 
   // 3. Funciones de Gestión
   const handleCambiarRol = async (usuarioId: number, nuevoRol: string) => {
-    const res = await adminService.actualizarRoles(usuarioId, [nuevoRol]);
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+        console.error("No hay sesión activa");
+        return;
+    }
+    const res = await adminService.actualizarRoles(usuarioId, [nuevoRol], token);
     if (!res.error) {
       cargarUsuarios(); // Recargamos para confirmar el cambio
     }
   };
 
   const handleEliminar = async (usuarioId: number, nombre: string) => {
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+        console.error("No hay sesión activa");
+        return;
+    }
     if (window.confirm(`¿Estás seguro de eliminar a ${nombre} del sistema?`)) {
-      const res = await adminService.eliminarUsuario(usuarioId);
+      const res = await adminService.eliminarUsuario(usuarioId, token);
       if (!res.error) {
         cargarUsuarios();
       }

@@ -6,6 +6,7 @@ from ..models import Usuario, Rol, Usuario_rol
 from django.db import transaction
 
 class GestionUsuariosAdminView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
     def get(self, request):
         usuarios = Usuario.objects.all()
