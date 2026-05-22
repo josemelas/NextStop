@@ -1,14 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { isAdmin } from '@/lib/adminGuard';
-import { adminService } from '@/lib/adminService'; // Importamos el nuevo servicio
-import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
-import { Shield, Search, Filter, Trash2, RefreshCw, Loader2 } from 'lucide-react';
+import { adminService } from '@/lib/adminService';
+import { HeaderUsuario } from '@/app/components/NavCliente';
+import {
+  ShieldCheck,
+  TrendingUp,
+  Users,
+  LogOut,
+  Shield,
+  Search,
+  Trash2,
+  RefreshCw,
+  Loader2
+} from 'lucide-react';
 
 export default function GestionRolesReal() {
   const router = useRouter();
+  const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,11 +28,13 @@ export default function GestionRolesReal() {
 
   // 1. Verificación de Seguridad
   useEffect(() => {
-    if (!isAdmin()) {
-      router.push('/cliente/menupr');
-    } else {
-      setAuthorized(true);
-      cargarUsuarios();
+    if (typeof window !== "undefined") {
+      if (!isAdmin()) {
+        router.push('/cliente/menupr');
+      } else {
+        setAuthorized(true);
+        cargarUsuarios();
+      }
     }
   }, [router]);
 
@@ -69,15 +83,75 @@ export default function GestionRolesReal() {
 
   // 4. Filtrado en tiempo real
   const usuariosFiltrados = usuarios.filter(u =>
-    u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    u.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (!authorized) return null;
 
   return (
     <div className="min-h-screen bg-[#0f172a] flex font-sans text-slate-200">
-      <SidebarCliente />
+
+      {/* ====================================================================
+          SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN (Idéntico al del Dashboard)
+          ==================================================================== */}
+      <aside className="w-72 bg-[#0f172a] text-white flex flex-col border-r border-slate-800 sticky top-0 h-screen">
+        <div className="p-8 flex items-center gap-3">
+          <div className="bg-orange-500 p-2 rounded-xl shadow-lg">
+            <ShieldCheck className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tighter">Next<span className="text-orange-500">Stop</span></h1>
+            <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Panel de Control General</p>
+          </div>
+        </div>
+
+        <nav className="flex-1 px-4 space-y-2 mt-4">
+          <Link
+            href="/admin/dashboard"
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+              pathname === '/admin/dashboard'
+              ? 'bg-slate-800 text-white shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            Estadísticas y KPIs
+          </Link>
+
+          <Link
+            href="/admin/usuarios"
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+              pathname === '/admin/usuarios'
+              ? 'bg-slate-800 text-white shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Users className={`w-5 h-5 ${pathname === '/admin/usuarios' ? 'text-orange-500' : ''}`} />
+            Gestión de Usuarios
+          </Link>
+
+          <div className="pt-6 mt-6 border-t border-slate-800 px-2">
+            <Link
+              href="/cliente/menupr"
+              className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-800 text-slate-300 font-black italic hover:bg-slate-700 transition-all text-center justify-center text-xs tracking-wider border border-slate-700"
+            >
+              VOLVER AL PORTAL CLIENTE
+            </Link>
+          </div>
+        </nav>
+
+        <div className="p-6 mt-auto border-t border-slate-800">
+          <Link
+            href="/"
+            onClick={() => localStorage.clear()}
+            className="w-full flex items-center gap-4 text-slate-500 hover:text-red-400 p-4 rounded-2xl font-bold transition-all"
+          >
+            <LogOut className="w-5 h-5" /> Cerrar Sesión Admin
+          </Link>
+        </div>
+      </aside>
+      {/* ==================================================================== */}
 
       <main className="flex-1 p-8 overflow-y-auto">
         <HeaderUsuario />
@@ -93,7 +167,7 @@ export default function GestionRolesReal() {
             </div>
             <button
               onClick={cargarUsuarios}
-              className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all flex items-center gap-2 font-bold text-xs"
+              className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl transition-all flex items-center gap-2 font-bold text-xs border border-slate-700"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-500' : ''}`} />
               RECARGAR
@@ -107,7 +181,7 @@ export default function GestionRolesReal() {
               <input
                 type="text"
                 placeholder="Buscar por nombre o correo..."
-                className="w-full bg-slate-900/50 border border-slate-800 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 transition-all font-bold text-sm"
+                className="w-full bg-slate-900/50 border border-slate-800 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 transition-all font-bold text-sm text-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -138,18 +212,24 @@ export default function GestionRolesReal() {
                     </tr>
                   </thead>
                   <tbody>
-                    {usuariosFiltrados.map((u) => (
-                      <UserRow
-                        key={u.id_usuario}
-                        id={u.id_usuario}
-                        name={u.nombre}
-                        email={u.email}
-                        role={u.roles[0] || "Cliente"}
-                        activo={u.activo}
-                        onRoleChange={handleCambiarRol}
-                        onDelete={handleEliminar}
-                      />
-                    ))}
+                    {usuariosFiltrados.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-500 font-bold uppercase text-xs">No se encontraron usuarios.</td>
+                      </tr>
+                    ) : (
+                      usuariosFiltrados.map((u) => (
+                        <UserRow
+                          key={u.id_usuario || u.id}
+                          id={u.id_usuario || u.id}
+                          name={u.nombre || "Usuario"}
+                          email={u.email}
+                          role={u.roles?.[0] || "Cliente"}
+                          activo={u.activo !== undefined ? u.activo : true}
+                          onRoleChange={handleCambiarRol}
+                          onDelete={handleEliminar}
+                        />
+                      ))
+                    )}
                   </tbody>
                 </table>
               )}
@@ -172,7 +252,7 @@ function UserRow({ id, name, email, role, activo, onRoleChange, onDelete }: any)
     <tr className="bg-slate-800/20 hover:bg-slate-800/40 transition-all group">
       <td className="px-6 py-5 rounded-l-3xl border-l border-t border-b border-slate-800/50">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-black text-orange-500 shadow-inner">
+          <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-black text-orange-500 shadow-inner uppercase">
             {name.charAt(0)}
           </div>
           <p className="font-black text-white italic">{name}</p>

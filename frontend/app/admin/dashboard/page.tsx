@@ -68,16 +68,16 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex font-sans text-slate-800">
+    <div className="min-h-screen bg-[#0f172a] flex font-sans text-slate-200">
 
-      {/* SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN */}
-      <aside className="w-72 bg-[#0f172a] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
+      {/* SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN RESTAURADO OSCURO */}
+      <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
         <div className="p-8 flex items-center gap-3">
           <div className="bg-orange-500 p-2 rounded-xl shadow-lg">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tighter">Next<span className="text-orange-500">Stop</span></h1>
+            <h1 className="text-xl font-black tracking-tighter text-white">Next<span className="text-orange-500">Stop</span></h1>
             <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Panel de Control General</p>
           </div>
         </div>
@@ -110,9 +110,14 @@ export default function AdminDashboard() {
           <div className="pt-6 mt-6 border-t border-white/10 px-2">
             <Link
               href="/cliente/menupr"
-              className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-800 text-slate-300 font-black italic hover:bg-slate-700 transition-all text-center justify-center text-xs tracking-wider"
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
+                pathname.startsWith('/admin')
+                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
+              }`}
             >
-              VOLVER AL PORTAL CLIENTE
+              <ShieldCheck className="w-5 h-5" />
+              PANEL PRINCIPAL ADMIN
             </Link>
           </div>
         </nav>
@@ -128,19 +133,19 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL DEL DASHBOARD */}
+      {/* CONTENIDO PRINCIPAL DEL DASHBOARD RESTAURADO OSCURO */}
       <main className="flex-1 p-8 md:p-12 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-10">
 
-          {/* ENCABEZADO */}
+          {/* ENCABEZADO RESTAURADO OSCURO */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">Estadísticas y KPIs</h2>
+              <h2 className="text-4xl font-black text-white tracking-tight italic uppercase">Estadísticas y KPIs</h2>
               <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitoreo operacional y financiero global en tiempo real</p>
             </div>
 
-            {/* ESTADO CONECTOR AMADEUS DINÁMICO */}
-            <div className="inline-flex items-center gap-3 bg-white px-5 py-3 rounded-full border border-slate-100 shadow-sm self-start">
+            {/* INDICADOR DE ESTADO DE LA API RESTAURADO OSCURO */}
+            <div className="inline-flex items-center gap-3 bg-[#1e293b] px-5 py-3 rounded-full border border-slate-800 shadow-sm self-start">
               <Globe className={`w-5 h-5 ${estadoAmadeus === 'ONLINE' ? 'text-emerald-500 animate-spin-[spin_3s_linear_infinite]' : 'text-red-500'}`} />
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 API GDS Amadeus: {' '}
@@ -166,95 +171,99 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <>
-              {/* CUADRÍCULA DE 4 TARJETAS KPIS REALES */}
+              {/* CUADRÍCULA DE 4 TARJETAS KPIS RESTAURADA OSCURA */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 {/* KPI 1: INGRESOS MES */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-5">
-                  <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 border border-emerald-100">
+                <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
+                  <div className="w-14 h-14 bg-emerald-950/20 rounded-2xl flex items-center justify-center text-emerald-400 border border-emerald-900">
                     <DollarSign className="w-7 h-7" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos del Mes</p>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight mt-0.5">{formatoMoneda(kpis.ingresos_mes)}</h3>
+                    <h3 className="text-xl font-black text-white tracking-tight mt-0.5">{formatoMoneda(kpis.ingresos_mes)}</h3>
                   </div>
                 </div>
 
                 {/* KPI 2: VENTAS MES */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-5">
-                  <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 border border-orange-100">
+                <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
+                  <div className="w-14 h-14 bg-orange-950/20 rounded-2xl flex items-center justify-center text-orange-400 border border-orange-900">
                     <TrendingUp className="w-7 h-7" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reservas del Mes</p>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mt-0.5">{kpis.ventas_mes}</h3>
+                    <h3 className="text-2xl font-black text-white tracking-tight mt-0.5">{kpis.ventas_mes}</h3>
                   </div>
                 </div>
 
                 {/* KPI 3: VUELOS TOTALES */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-5">
-                  <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100">
+                <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
+                  <div className="w-14 h-14 bg-blue-950/20 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-900">
                     <Plane className="w-7 h-7" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Vuelos en Oferta</p>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mt-0.5">{kpis.vuelos_totales}</h3>
+                    <h3 className="text-2xl font-black text-white tracking-tight mt-0.5">{kpis.vuelos_totales}</h3>
                   </div>
                 </div>
 
                 {/* KPI 4: AGENCIAS ACTIVAS */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-5">
-                  <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 border border-purple-100">
+                <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
+                  <div className="w-14 h-14 bg-purple-950/20 rounded-2xl flex items-center justify-center text-purple-400 border border-purple-900">
                     <Building2 className="w-7 h-7" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Agencias Activas</p>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mt-0.5">{kpis.agencias_activas}</h3>
+                    <h3 className="text-2xl font-black text-white tracking-tight mt-0.5">{kpis.agencias_activas}</h3>
                   </div>
                 </div>
 
               </div>
 
-              {/* TABLA: DIRECTORIO DE PROVEEDORES Y AGENCIAS (ORDENADO TOP INGRESOS) */}
-              <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm p-8">
-                <div className="mb-6">
-                  <h4 className="font-black text-lg text-slate-900 uppercase tracking-tight">Rendimiento e Ingresos por Proveedor API</h4>
-                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-0.5">Top 5 agencias externas ordenadas de mayor a menor recaudación de transacciones pagadas</p>
+              {/* TABLA: DIRECTORIO DE PROVEEDORES Y AGENCIAS RESTAURADA OSCURA */}
+              <div className="bg-[#1e293b] rounded-[3rem] border border-slate-800 shadow-sm p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-black text-lg text-white uppercase tracking-tight">Rendimiento e Ingresos por Proveedor API</h4>
+                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-0.5">Top 5 agencias externas ordenadas de mayor a menor recaudación de transacciones pagadas</p>
+                  </div>
+                  <Link href="/admin/usuarios" className="text-xs font-black uppercase text-orange-500 hover:text-orange-400 transition-colors">VER TODAS</Link>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      <tr className="border-b border-slate-800 text-[10px] font-black text-slate-500 uppercase tracking-wider">
                         <th className="pb-4 pl-4">Agencia / Proveedor</th>
                         <th className="pb-4">Estado Sistema</th>
                         <th className="pb-4 text-center">Vuelos Conectados</th>
                         <th className="pb-4 text-right pr-4">Total Recaudado</th>
+                        <th className="pb-4"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 text-sm font-semibold text-slate-700">
+                    <tbody className="divide-y divide-slate-800/50 text-sm font-semibold text-slate-300">
                       {directorioAgencias.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="py-8 text-center text-slate-400 font-bold uppercase text-xs">
+                          <td colSpan={5} className="py-8 text-center text-slate-400 font-bold uppercase text-xs">
                             No hay agencias ni ventas registradas en este periodo
                           </td>
                         </tr>
                       ) : (
                         directorioAgencias.map((agencia, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-4 pl-4 font-bold text-slate-900">{agencia.nombre}</td>
+                          <tr key={idx} className="hover:bg-slate-800/50 transition-colors">
+                            <td className="py-4 pl-4 font-bold text-white">{agencia.nombre}</td>
                             <td className="py-4">
-                              {/* CORREGIDO: Removido el $.trim() que rompía la compilación */}
                               <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
                                 agencia.estado?.trim() === 'Activo'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-red-50 text-red-700 border-red-200'
+                                ? 'bg-emerald-950 text-emerald-300 border-emerald-900'
+                                : 'bg-amber-950 text-amber-300 border-amber-900'
                               }`}>
                                 {agencia.estado}
                               </span>
                             </td>
-                            <td className="py-4 text-center font-bold text-slate-600">{agencia.vuelos}</td>
-                            <td className="py-4 text-right pr-4 font-black text-emerald-600">{formatoMoneda(agencia.ingresos)}</td>
+                            <td className="py-4 text-center font-bold text-slate-400">{agencia.vuelos}</td>
+                            <td className="py-4 text-right pr-4 font-black text-emerald-400">{formatoMoneda(agencia.ingresos)}</td>
+                            <td className="py-4 text-slate-600 text-lg">›</td>
                           </tr>
                         ))
                       )}
