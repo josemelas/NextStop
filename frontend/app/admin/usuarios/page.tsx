@@ -14,7 +14,7 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
-  Lock // Importamos el ícono de candado para mayor efecto visual
+  Lock
 } from 'lucide-react';
 
 export default function GestionRolesReal() {
@@ -141,16 +141,7 @@ export default function GestionRolesReal() {
         </div>
       </aside>
 
-      <main className="flex-1 p-8 md:p-12 overflow-y-auto">
-        <div className="mb-8 flex justify-end">
-          <Link href="/cliente/perfil" className="flex items-center gap-4 bg-[#1e293b] p-2 pr-6 rounded-full border border-slate-800 hover:border-slate-600 transition-all cursor-pointer">
-            <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner uppercase">
-               A
-            </div>
-            <p className="text-sm font-black text-white">Administrador</p>
-          </Link>
-        </div>
-
+      <main className="flex-1 p-8 md:p-12 pt-12 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-10">
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -278,7 +269,12 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
           <div>
             <p className="font-bold text-white flex items-center gap-2">
               {name}
-              {esProtegido && <Lock className="w-3 h-3 text-orange-500" title="Perfil protegido" />}
+              {/* Aquí envolvemos el icono de Lock en un span para evitar el error de TypeScript */}
+              {esProtegido && (
+                <span title="Perfil protegido" className="flex items-center">
+                  <Lock className="w-3 h-3 text-orange-500" />
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -294,7 +290,6 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
             if (rol === "Empresa") activeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30";
             if (rol === "Cliente") activeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
 
-            // Quitamos el efecto hover si está protegido
             if (!esProtegido) {
               if (rol === "Administrador") activeColor += " hover:bg-orange-500/30";
               if (rol === "Empresa") activeColor += " hover:bg-blue-500/30";
