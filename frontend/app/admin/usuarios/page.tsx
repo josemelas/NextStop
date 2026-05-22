@@ -42,7 +42,12 @@ export default function GestionRolesReal() {
 
   // 3. Funciones de Gestión
   const handleCambiarRol = async (usuarioId: number, nuevoRol: string) => {
-    const res = await adminService.actualizarRoles(usuarioId, [nuevoRol]);
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+        console.error("No hay sesión activa");
+        return;
+    }
+    const res = await adminService.actualizarRoles(token, usuarioId, [nuevoRol]);
     if (!res.error) {
       cargarUsuarios(); // Recargamos para confirmar el cambio
     }
