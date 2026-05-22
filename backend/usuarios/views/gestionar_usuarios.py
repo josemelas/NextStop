@@ -39,10 +39,10 @@ class GestionUsuariosAdminView(APIView):
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
         IDS_SUPER_ADMINS = [11, 12]
-        if usuario.email in IDS_SUPER_ADMINS:
+        if usuario.id_usuario in IDS_SUPER_ADMINS:
             return Response({"error": "Operación denegada. Los perfiles fundadores no pueden ser modificados."},
                             status=status.HTTP_403_FORBIDDEN)
-        if request.user.email == usuario.email:
+        if request.user.id_usuario == usuario.id_usuario:
             return Response({"error": "No puedes modificar tus propios permisos."}, status=status.HTTP_403_FORBIDDEN)
 
         Usuario_rol.objects.filter(usuario=usuario).delete()
@@ -69,10 +69,10 @@ class GestionUsuariosAdminView(APIView):
         try:
             usuario = Usuario.objects.get(id=id_usuario)
             IDS_SUPER_ADMINS = [11, 12]
-            if usuario.email in IDS_SUPER_ADMINS:
+            if usuario.id_usuario in IDS_SUPER_ADMINS:
                 return Response({"error": "Operación denegada. Los perfiles fundadores no pueden ser eliminados."},
                                 status=status.HTTP_403_FORBIDDEN)
-            if request.user.email == usuario.email:
+            if request.user.id_usuario == usuario.id_usuario:
                 return Response({"error": "No puedes eliminar tu propia cuenta."}, status=status.HTTP_403_FORBIDDEN)
             with transaction.atomic():
                 return Response({"mensaje": "Usuario eliminado con éxito"}, status=status.HTTP_200_OK)
