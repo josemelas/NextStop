@@ -50,13 +50,13 @@ export default function GestionRolesReal() {
     setLoading(false);
   };
 
-  // NUEVO: Función para recibir el arreglo completo de roles y mandarlo al servidor
   const handleActualizarRoles = async (usuarioId: number, nuevosRoles: string[]) => {
     const token = localStorage.getItem('user_token');
     if (!token) return;
 
     const res = await adminService.actualizarRoles(usuarioId, nuevosRoles, token);
-    if (!res.error) {
+    if (res.error) {
+      alert("Hubo un error al guardar los roles en la base de datos.");
       cargarUsuarios();
     }
   };
@@ -226,27 +226,41 @@ export default function GestionRolesReal() {
 }
 
 function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: any) {
-  // Estandarizamos los roles que vienen de la base de datos a mayúsculas
-  const rolesActuales = roles.map((r: string) => r.toUpperCase());
-  const rolesDisponibles = ["ADMIN", "AGENCIA", "CLIENTE"];
+  const [localRoles, setLocalRoles] = useState<string[]>([]);
 
-  // Lógica para encender/apagar un rol con las reglas de negocio
+  // Normalizador para asegurar que los roles empaten exactamente con lo que pide Brian
+  const normalizarRol = (rolVago: string) => {
+    const r = rolVago.toLowerCase();
+    if (r.includes('admin')) return "Administrador";
+    if (r.includes('agencia') || r.includes('empresa')) return "Empresa";
+    if (r.includes('cliente')) return "Cliente";
+    return rolVago; // Por si hay otro raro
+  };
+
+  useEffect(() => {
+    const parsedRoles = Array.isArray(roles) ? roles : [roles];
+    setLocalRoles(parsedRoles.map((r: string) => normalizarRol(r || "")));
+  }, [roles]);
+
+  // Roles exactos que pide el backend
+  const rolesDisponibles = ["Administrador", "Empresa", "Cliente"];
+
   const handleToggleRole = (rolClickeado: string) => {
-    let nuevosRoles = [...rolesActuales];
+    let nuevosRoles = [...localRoles];
 
     if (nuevosRoles.includes(rolClickeado)) {
-      // Si el rol ya lo tiene, se lo quitamos
       nuevosRoles = nuevosRoles.filter((r) => r !== rolClickeado);
+      if (nuevosRoles.length === 0) nuevosRoles = ["Cliente"];
     } else {
-      // Si no lo tiene, se lo agregamos
       nuevosRoles.push(rolClickeado);
-
-      // Regla de Negocio: Si se asigna ADMIN o AGENCIA, forzosamente debe tener CLIENTE
-      if ((rolClickeado === "ADMIN" || rolClickeado === "AGENCIA") && !nuevosRoles.includes("CLIENTE")) {
-        nuevosRoles.push("CLIENTE");
+      // Regla de Negocio: Si tiene Administrador o Empresa, forzamos Cliente
+      if ((rolClickeado === "Administrador" || rolClickeado === "Empresa") && !nuevosRoles.includes("Cliente")) {
+        nuevosRoles.push("Cliente");
       }
     }
-    onRolesUpdate(id, nuevosRoles);
+
+    setLocalRoles(nuevosRoles);
+    onRolesUpdate(id, nuevosRoles); // Se envían exactos: ["Administrador", "Cliente"] etc.
   };
 
   return (
@@ -263,21 +277,21 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
       <td className="py-4">
         <div className="flex flex-wrap gap-2">
           {rolesDisponibles.map((rol) => {
-            const hasRole = rolesActuales.includes(rol);
+            const hasRole = localRoles.includes(rol);
             let activeColor = "";
 
-            if (rol === "ADMIN") activeColor = "bg-orange-500/20 text-orange-400 border-orange-500/30";
-            if (rol === "AGENCIA") activeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30";
-            if (rol === "CLIENTE") activeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+            if (rol === "Administrador") activeColor = "bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30";
+            if (rol === "Empresa") activeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30";
+            if (rol === "Cliente") activeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30";
 
-            const inactiveColor = "bg-[#0f172a] text-slate-600 border-slate-800 hover:border-slate-600 hover:text-slate-400";
+            const inactiveColor = "bg-[#0f172a] text-slate-600 border-slate-800 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-400";
 
             return (
               <button
                 key={rol}
                 onClick={() => handleToggleRole(rol)}
-                title={hasRole ? `Quitar rol de ${rol}` : `Asignar rol de ${rol}`}
-                className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${hasRole ? activeColor : inactiveColor}`}
+                title={hasRole ? `Clic para quitar rol de ${rol}` : `Clic para asignar rol de ${rol}`}
+                className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border transition-all duration-300 cursor-pointer ${hasRole ? activeColor : inactiveColor}`}
               >
                 {rol}
               </button>
