@@ -20,7 +20,6 @@ import { adminService } from '@/lib/adminService';
 export default function AdminDashboard() {
   const pathname = usePathname();
 
-  // Estados para albergar la data del backend de Brian
   const [kpis, setKpis] = useState({
     vuelos_totales: 0,
     agencias_activas: 0,
@@ -30,11 +29,9 @@ export default function AdminDashboard() {
   const [directorioAgencias, setDirectorioAgencias] = useState<any[]>([]);
   const [estadoAmadeus, setEstadoAmadeus] = useState("OFFLINE");
 
-  // Estados de control de la UI
   const [isLoading, setIsLoading] = useState(true);
   const [errorApi, setErrorApi] = useState("");
 
-  // Carga e integración en caliente conectando con Django
   useEffect(() => {
     const cargarDatosDashboard = async () => {
       if (typeof window !== "undefined") {
@@ -62,7 +59,6 @@ export default function AdminDashboard() {
     cargarDatosDashboard();
   }, []);
 
-  // Formateador estándar de moneda
   const formatoMoneda = (valor: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(valor);
   };
@@ -70,7 +66,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#0f172a] flex font-sans text-slate-200">
 
-      {/* SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN RESTAURADO OSCURO */}
+      {/* SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN (UNIFICADO) */}
       <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
         <div className="p-8 flex items-center gap-3">
           <div className="bg-orange-500 p-2 rounded-xl shadow-lg">
@@ -87,8 +83,8 @@ export default function AdminDashboard() {
             href="/admin/dashboard"
             className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
               pathname === '/admin/dashboard'
-              ? 'bg-white/10 text-white border border-white/5 shadow-inner'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-slate-800 text-white shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
             <TrendingUp className={`w-5 h-5 ${pathname === '/admin/dashboard' ? 'text-orange-500' : ''}`} />
@@ -99,30 +95,25 @@ export default function AdminDashboard() {
             href="/admin/usuarios"
             className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
               pathname === '/admin/usuarios'
-              ? 'bg-white/10 text-white border border-white/5 shadow-inner'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-slate-800 text-white shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
             <Users className="w-5 h-5" />
             Gestión de Usuarios
           </Link>
 
-          <div className="pt-6 mt-6 border-t border-white/10 px-2">
+          <div className="pt-6 mt-6 border-t border-slate-800 px-2">
             <Link
               href="/cliente/menupr"
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
-                pathname.startsWith('/admin')
-                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
-                : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
-              }`}
+              className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-800 text-slate-300 font-black italic hover:bg-slate-700 transition-all text-center justify-center text-xs tracking-wider border border-slate-700"
             >
-              <ShieldCheck className="w-5 h-5" />
-              PANEL PRINCIPAL ADMIN
+              VOLVER AL PORTAL CLIENTE
             </Link>
           </div>
         </nav>
 
-        <div className="p-6 mt-auto border-t border-white/5">
+        <div className="p-6 mt-auto border-t border-slate-800">
           <Link
             href="/"
             onClick={() => localStorage.clear()}
@@ -133,18 +124,15 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL DEL DASHBOARD RESTAURADO OSCURO */}
       <main className="flex-1 p-8 md:p-12 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-10">
 
-          {/* ENCABEZADO RESTAURADO OSCURO */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h2 className="text-4xl font-black text-white tracking-tight italic uppercase">Estadísticas y KPIs</h2>
               <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitoreo operacional y financiero global en tiempo real</p>
             </div>
 
-            {/* INDICADOR DE ESTADO DE LA API RESTAURADO OSCURO */}
             <div className="inline-flex items-center gap-3 bg-[#1e293b] px-5 py-3 rounded-full border border-slate-800 shadow-sm self-start">
               <Globe className={`w-5 h-5 ${estadoAmadeus === 'ONLINE' ? 'text-emerald-500 animate-spin-[spin_3s_linear_infinite]' : 'text-red-500'}`} />
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -156,7 +144,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* MANEJO DE ALERTAS POR ERRORES DE API */}
           {errorApi && (
             <div className="bg-red-50 border border-red-200 text-red-800 font-bold text-sm p-5 rounded-3xl flex items-center gap-3 shadow-sm">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
@@ -171,10 +158,7 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <>
-              {/* CUADRÍCULA DE 4 TARJETAS KPIS RESTAURADA OSCURA */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                {/* KPI 1: INGRESOS MES */}
                 <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
                   <div className="w-14 h-14 bg-emerald-950/20 rounded-2xl flex items-center justify-center text-emerald-400 border border-emerald-900">
                     <DollarSign className="w-7 h-7" />
@@ -185,7 +169,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* KPI 2: VENTAS MES */}
                 <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
                   <div className="w-14 h-14 bg-orange-950/20 rounded-2xl flex items-center justify-center text-orange-400 border border-orange-900">
                     <TrendingUp className="w-7 h-7" />
@@ -196,7 +179,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* KPI 3: VUELOS TOTALES */}
                 <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
                   <div className="w-14 h-14 bg-blue-950/20 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-900">
                     <Plane className="w-7 h-7" />
@@ -207,7 +189,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* KPI 4: AGENCIAS ACTIVAS */}
                 <div className="bg-[#1e293b] p-6 rounded-[2.5rem] border border-slate-800 shadow-sm flex items-center gap-5">
                   <div className="w-14 h-14 bg-purple-950/20 rounded-2xl flex items-center justify-center text-purple-400 border border-purple-900">
                     <Building2 className="w-7 h-7" />
@@ -217,10 +198,8 @@ export default function AdminDashboard() {
                     <h3 className="text-2xl font-black text-white tracking-tight mt-0.5">{kpis.agencias_activas}</h3>
                   </div>
                 </div>
-
               </div>
 
-              {/* TABLA: DIRECTORIO DE PROVEEDORES Y AGENCIAS RESTAURADA OSCURA */}
               <div className="bg-[#1e293b] rounded-[3rem] border border-slate-800 shadow-sm p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <div>
