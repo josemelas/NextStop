@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plane, Search, Ticket, Heart, LogOut, User, ShieldCheck, Users } from 'lucide-react';
+import { Plane, Search, Ticket, Heart, LogOut, User, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAdmin } from '@/lib/adminGuard';
@@ -16,10 +16,6 @@ export function SidebarCliente() {
     { name: 'Favoritos', href: '/cliente/favoritos', icon: Heart },
     { name: 'Mi Perfil', href: '/cliente/perfil', icon: User },
   ];
-
-  if (showAdmin) {
-    links.push({ name: 'Gestión de Usuarios', href: '/admin/usuarios', icon: Users });
-  }
 
   return (
     <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
@@ -53,13 +49,13 @@ export function SidebarCliente() {
           );
         })}
 
-        {/* BOTÓN DE PANEL PRINCIPAL ADMIN */}
+        {/* 2. ÚNICO ACCESO AL ADMIN: El botón naranja que te lleva al Dashboard */}
         {showAdmin && (
           <div className="pt-6 mt-6 border-t border-white/10 px-2">
             <Link
               href="/admin/dashboard"
               className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black italic transition-all ${
-                pathname === '/admin/dashboard'
+                pathname.startsWith('/admin')
                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
                 : 'bg-slate-800 text-orange-500 hover:bg-slate-700'
               }`}
@@ -87,19 +83,16 @@ export function SidebarCliente() {
 export function HeaderUsuario() {
   const [nombreMostrar, setNombreMostrar] = useState("Viajero");
   const [inicial, setInicial] = useState("V");
-  const [fotoMostrar, setFotoMostrar] = useState<string | null>(null); // Estado para rastrear la foto de perfil
+  const [fotoMostrar, setFotoMostrar] = useState<string | null>(null);
 
-  // Función encargada de mapear el localStorage de forma síncrona
   const sincronizarDatosUsuario = () => {
     const userDataString = localStorage.getItem("user_data");
     if (userDataString) {
       try {
         const user = JSON.parse(userDataString);
         if (user) {
-          // Sincronizar Foto de Perfil
           setFotoMostrar(user.foto_perfil || null);
 
-          // Sincronizar Nombre y Apellido
           if (user.nombre) {
             const palabras = user.nombre.trim().split(/\s+/);
 
@@ -125,10 +118,7 @@ export function HeaderUsuario() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Carga inicial al montar el componente
       sincronizarDatosUsuario();
-
-      // Escuchador global: reacciona inmediatamente al evento lanzado en tu perfil
       window.addEventListener('storage', sincronizarDatosUsuario);
 
       return () => {
@@ -145,7 +135,6 @@ export function HeaderUsuario() {
         href="/cliente/perfil"
         className="flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-md border border-slate-100 hover:border-orange-500/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
       >
-        {/* Renderizado condicional: Muestra la foto real o la inicial según la disponibilidad de la data */}
         <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-2 border-orange-500/20 group-hover:border-orange-500 transition-colors overflow-hidden">
           {fotoMostrar ? (
             <img src={fotoMostrar} alt="Avatar" className="w-full h-full object-cover" />
