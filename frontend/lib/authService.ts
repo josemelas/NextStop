@@ -18,10 +18,9 @@ export const authService = {
     }
   },
 
-  // 2. Inicio de Sesión Real (Sin bypass de prueba)
-  login: async (email: string, pass: string) => {
+  // 2. Inicio de Sesión (Agregamos parámetro portal)
+  login: async (email: string, pass: string, portal: "cliente" | "empresa") => {
     try {
-      // Forzamos el uso de la URL absoluta
       const res = await fetch(`${API_URL}/login/`, {
         method: "POST",
         headers: {
@@ -31,33 +30,32 @@ export const authService = {
         body: JSON.stringify({
           email: email,
           password: pass,
-          recaptcha_token: "fake-token"
+          recaptcha_token: "fake-token",
+          portal: portal // <--- EL CAMBIO SOLICITADO POR BRIAN
         }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.token) {
-        localStorage.setItem("token_access", data.token.access);
+        localStorage.setItem("user_token", data.token.access);
         localStorage.setItem("user_data", JSON.stringify(data.usuario));
+        localStorage.setItem("user_portal", portal); // Guardamos para el Guard
         return { ok: true, data };
       }
 
-      // Si el servidor responde pero con error (ej: 401 o 500)
       return { ok: false, data: data };
     } catch (error) {
-      // Aquí es donde cae el "Error de red"
       console.error("Error capturado:", error);
       return { ok: false, data: { error: "Error de conexión: Revisa la URL de la API" } };
     }
   },
 
   // 3. Validar Token / Verificar Sesión
-  // Brian tiene la ruta 'validar-token/' en su urls.py
   verificarSesion: async () => {
     if (typeof window === "undefined") return null;
 
-    const token = localStorage.getItem("token_access");
+    const token = localStorage.getItem("user_token");
     if (!token) return null;
 
     try {
@@ -72,9 +70,7 @@ export const authService = {
       if (res.ok) {
         return await res.json();
       } else {
-        // Si el token expiró, limpiamos el localstorage
-        localStorage.removeItem("token_access");
-        localStorage.removeItem("user_data");
+        localStorage.clear();
         return null;
       }
     } catch (error) {
