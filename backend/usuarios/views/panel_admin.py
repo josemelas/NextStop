@@ -13,12 +13,17 @@ class EstadisticasDashboard(APIView):
         mes = request.query_params.get('mes')
         anio = request.query_params.get('anio')
         reservas_query = Reserva.objects.filter(estado_pago='PAGADO')
+        vuelos_query = Vuelo.objects.all()
         if mes and anio:
             reservas_query = reservas_query.filter(
-                fecha_transaccion__year=anio,
-                fecha_transaccion__month=mes
+                id_vuelo__fecha_salida__year=int(anio),
+                id_vuelo__fecha_salida__month=int(mes)
             )
-        total_vuelos = Vuelo.objects.count()
+            vuelos_query = vuelos_query.filter(
+                fecha_salida__year=int(anio),
+                fecha_salida__month=int(mes)
+            )
+        total_vuelos = vuelos_query.count()
         total_agencias = Proveedorapi.objects.filter(activo=True).count()
 
         ventas_totales = reservas_query.count()
@@ -28,7 +33,7 @@ class EstadisticasDashboard(APIView):
         directorio = []
 
         for agencia in agencias:
-            vuelos_agencia = Vuelo.objects.filter(id_proveedor=agencia)
+            vuelos_agencia = vuelos_query.filter(id_proveedor=agencia)
             reservas_agencia = reservas_query.filter(id_vuelo__in=vuelos_agencia)
             ingresos_agencia = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
 
