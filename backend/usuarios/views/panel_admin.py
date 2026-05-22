@@ -15,8 +15,8 @@ class EstadisticasDashboard(APIView):
         reservas_query = Reserva.objects.filter(estado_pago='PAGADO')
         if mes and anio:
             reservas_query = reservas_query.filter(
-                fecha_transaccion__year=anio,
-                fecha_transaccion__month=mes
+                id_vuelo__fecha_salida__year=int(anio),
+                id_vuelo__fecha_salida__month=int(mes)
             )
         total_vuelos = Vuelo.objects.count()
         total_agencias = Proveedorapi.objects.filter(activo=True).count()
