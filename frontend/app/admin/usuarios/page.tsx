@@ -27,7 +27,8 @@ export default function GestionRolesReal() {
   // 2. Cargar usuarios desde el backend
   const cargarUsuarios = async () => {
     setLoading(true);
-    const data = await adminService.obtenerUsuarios();
+    const token = localStorage.getItem('user_token');
+    const data = await adminService.obtenerUsuarios(token);
     if (Array.isArray(data)) {
       setUsuarios(data);
     }
