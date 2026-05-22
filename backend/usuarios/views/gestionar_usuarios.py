@@ -38,14 +38,13 @@ class GestionUsuariosAdminView(APIView):
         except Usuario.DoesNotExist:
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
-        IDS_SUPER_ADMINS = [11, 12]
-        if id_usuario in IDS_SUPER_ADMINS:
-            return Response({"error": "Operación denegada. Los perfiles fundadores no pueden ser modificados."},
-                            status=status.HTTP_403_FORBIDDEN)
-        if request.user.id_usuario == id_usuario:
-            return Response({"error": "No puedes modificar tus propios permisos."}, status=status.HTTP_403_FORBIDDEN)
-
+        if request.user.id == usuario.id:
+            return Response(
+                {"error": "No puedes modificar tus propios roles o perfil."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         Usuario_rol.objects.filter(usuario=usuario).delete()
+
         roles_agregados = []
         for nombre_rol in nuevos_roles:
             try:
@@ -67,15 +66,28 @@ class GestionUsuariosAdminView(APIView):
             return Response({"error": "Se requiere el usuario_id para eliminar"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usuario = Usuario.objects.get(id=id_usuario)
-            IDS_SUPER_ADMINS = [11, 12]
-            if id_usuario in IDS_SUPER_ADMINS:
-                return Response({"error": "Operación denegada. Los perfiles fundadores no pueden ser eliminados."},
-                                status=status.HTTP_403_FORBIDDEN)
-            if request.user.id_usuario == id_usuario:
-                return Response({"error": "No puedes eliminar tu propia cuenta."}, status=status.HTTP_403_FORBIDDEN)
             with transaction.atomic():
-                return Response({"mensaje": "Usuario eliminado con éxito"}, status=status.HTTP_200_OK)
+                usuario = Usuario.objects.get(id=id_usuario)
+                nombre_usuario = usuario.nombre
+                proveedor_vinculado = usuario.id_proveedor
+
+                if proveedor_vinculado:
+                    nombre_empresa = proveedor_vinculado.nombre
+                    proveedor_vinculado.delete()
+                if request.user.id == usuario.id:
+                    return Response(
+                        {"error": "No puedes eliminar tu propia cuenta."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+                with transaction.atomic():
+                    usuario.delete()
+
+                mensaje = f"El usuario {nombre_usuario} ha sido eliminado."
+                if proveedor_vinculado:
+                    mensaje += f" También se eliminó la empresa {nombre_empresa}."
+
+                return Response({"mensaje": mensaje}, status=status.HTTP_200_OK)
+
         except Usuario.DoesNotExist:
             return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
