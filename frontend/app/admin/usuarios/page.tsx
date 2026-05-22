@@ -60,7 +60,7 @@ export default function GestionRolesReal() {
         return;
     }
     if (window.confirm(`¿Estás seguro de eliminar a ${nombre} del sistema?`)) {
-      const res = await adminService.eliminarUsuario(token, usuarioId);
+      const res = await adminService.eliminarUsuario(usuarioId, token);
       if (!res.error) {
         cargarUsuarios();
       }
