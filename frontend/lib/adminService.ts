@@ -57,7 +57,7 @@ export const adminService = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          usuario_id: usuarioId,
+          id_usuario: usuarioId,
           roles: roles
         })
       });

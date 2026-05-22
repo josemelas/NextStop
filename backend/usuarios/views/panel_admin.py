@@ -8,23 +8,28 @@ from reservas.models import Reserva
 class EstadisticasDashboard(APIView):
     authentication_classes = []
     permission_classes = []
-    def get(self, request):
-        hoy = timezone.now()
 
+    def get(self, request):
+        mes = request.query_params.get('mes')
+        anio = request.query_params.get('anio')
+        reservas_query = Reserva.objects.filter(estado_pago='PAGADO')
+        if mes and anio:
+            reservas_query = reservas_query.filter(
+                fecha_transaccion__year=anio,
+                fecha_transaccion__month=mes
+            )
         total_vuelos = Vuelo.objects.count()
         total_agencias = Proveedorapi.objects.filter(activo=True).count()
 
-        reservas_totales = Reserva.objects.filter(estado_pago='PAGADO')
-
-        ventas_totales = reservas_totales.count()
-        ingresos_totales = reservas_totales.aggregate(total=Sum('monto_total'))['total'] or 0
+        ventas_totales = reservas_query.count()
+        ingresos_totales = reservas_query.aggregate(total=Sum('monto_total'))['total'] or 0
 
         agencias = Proveedorapi.objects.all()
         directorio = []
 
         for agencia in agencias:
             vuelos_agencia = Vuelo.objects.filter(id_proveedor=agencia)
-            reservas_agencia = Reserva.objects.filter(id_vuelo__in=vuelos_agencia, estado_pago='PAGADO')
+            reservas_agencia = reservas_query.filter(id_vuelo__in=vuelos_agencia)
             ingresos_agencia = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
 
             directorio.append({
