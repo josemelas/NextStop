@@ -37,7 +37,7 @@ class LoginUsuario(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
         recaptcha_token = request.data.get('recaptcha_token')
-
+        portal = request.data.get('portal')
         if not self.verificar_recaptcha(recaptcha_token):
             if recaptcha_token != "fake-token":
                 return Response(
@@ -57,6 +57,18 @@ class LoginUsuario(APIView):
             return Response({'error': 'Contraseña incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
         roles_usuario = Usuario_rol.objects.filter(usuario=usuario).values_list('rol__nombre', flat=True)
         lista_roles = list(roles_usuario)
+        if portal == "cliente":
+            if "Cliente" not in lista_roles:
+                return Response(
+                    {'error': 'Acceso denegado. Esta cuenta no está registrada como Cliente.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        elif portal == "empresa":
+            if "Empresa" not in lista_roles and "Administrador" not in lista_roles:
+                return Response(
+                    {'error': 'Acceso denegado. Esta cuenta no está registrada como Empresa.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
         if 'Administrador' in lista_roles:
             nombre_rol = 'Administrador'
         elif 'Empresa' in lista_roles:
@@ -68,11 +80,11 @@ class LoginUsuario(APIView):
         refresh["user_id"] = usuario.id
         refresh["email"] = usuario.email
         refresh["rol"] = nombre_rol
-        
         access = refresh.access_token
         access["user_id"] = usuario.id
         access["email"] = usuario.email
         access["rol"] = nombre_rol
+
         return Response({
             'mensaje': 'Login exitoso',
             'token': {
