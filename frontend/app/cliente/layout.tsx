@@ -7,11 +7,16 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
 
   useEffect(() => {
-    // Si esta página es de cliente, el portal debe ser 'cliente'
-    if (!verificarAccesoPortal('cliente')) {
+  const validar = async () => {
+    const esValido = await authService.verificarSesion(); // Llama a tu API
+    const accesoCorrecto = verificarAccesoPortal('cliente');
+
+    if (!esValido || !accesoCorrecto) {
       router.push('/cliente/login');
     }
-  }, [router]);
+  };
+  validar();
+}, [router]);
 
   return <>{children}</>;
 }
