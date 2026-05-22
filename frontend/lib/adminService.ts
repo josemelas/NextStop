@@ -7,10 +7,23 @@ export const adminService = {
 
   /**
    * 1. OBTENER ESTADÍSTICAS DEL DASHBOARD (GET)
+   * (Actualizado para soportar filtros opcionales de mes y año)
    */
-  obtenerEstadisticas: async (token: string) => {
+  obtenerEstadisticas: async (token: string, mes?: string, anio?: string) => {
     try {
-      const res = await fetch(`${BASE_URL}/usuarios/admin/dashboard/`, {
+      let url = `${BASE_URL}/usuarios/admin/dashboard/`;
+
+      // Construimos los parámetros de la URL si el usuario seleccionó un filtro
+      const params = new URLSearchParams();
+      if (mes) params.append('mes', mes);
+      if (anio) params.append('anio', anio);
+      const queryStr = params.toString();
+
+      if (queryStr) {
+        url += `?${queryStr}`;
+      }
+
+      const res = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
