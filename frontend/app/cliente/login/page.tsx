@@ -20,20 +20,20 @@ export default function ClientLogin() {
     setIsLoading(true);
 
     try {
-      // 1. Modificación: Pasamos el "fake-token" para saltar el reCAPTCHA del backend de Brian
-      const { ok, data } = await authService.login(email, password);
+      // 1. Modificación: Pasamos "cliente" como tercer argumento para el backend de Brian
+      const { ok, data } = await authService.login(email, password, "cliente");
 
       if (ok) {
         console.log("Datos recibidos del backend:", data.usuario);
-        // 2. Modificación: Guardamos el token de acceso y la info del usuario en localStorage
-        // El backend de Brian anida el JWT dentro de data.token.access
+
+        // 2. Guardamos token, datos y la etiqueta del portal para el Guard de seguridad
         localStorage.setItem('user_token', data.token.access);
         localStorage.setItem('user_data', JSON.stringify(data.usuario));
+        localStorage.setItem('user_portal', "cliente");
 
         // Redirección al Dashboard Principal
         router.push('/cliente/menupr');
       } else {
-        // Captura el mensaje de error específico de Django (ej. "Contraseña incorrecta")
         setError(data.error || "Credenciales incorrectas");
       }
     } catch (err) {
@@ -72,7 +72,7 @@ export default function ClientLogin() {
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
-                  name="email" // Agregado el atributo name por consistencia estándar
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -88,7 +88,7 @@ export default function ClientLogin() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
-                  name="password" // Agregado el atributo name idéntico al de proveedor
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

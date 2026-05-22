@@ -19,21 +19,18 @@ export const authService = {
   },
 
   // 2. Inicio de Sesión (Agregamos parámetro portal)
-  login: async (email: string, pass: string, portal: "cliente" | "empresa") => {
-    try {
-      const res = await fetch(`${API_URL}/login/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          email: email,
-          password: pass,
-          recaptcha_token: "fake-token",
-          portal: portal // <--- EL CAMBIO SOLICITADO POR BRIAN
-        }),
-      });
+login: async (email: string, pass: string, portal: "cliente" | "empresa") => {
+  try {
+    const res = await fetch(`${API_URL}/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        password: pass,
+        recaptcha_token: "fake-token",
+        portal: portal // 👈 Esto es lo que pide Brian
+      }),
+    });
 
       const data = await res.json();
 

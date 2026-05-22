@@ -25,21 +25,21 @@ export default function ProviderLogin() {
         body: JSON.stringify({
           email: email,
           password: password,
-          recaptcha_token: "fake-token" // Requerido por la clase LoginUsuario de Brian
+          recaptcha_token: "fake-token",
+          portal: "empresa" // 👈 AQUÍ ESTÁ EL CAMBIO SOLICITADO
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Guardamos el token de acceso y la info del usuario como lo devuelve el backend
+        // Guardamos el token y la info
         localStorage.setItem('user_token', data.token.access);
         localStorage.setItem('user_data', JSON.stringify(data.usuario));
+        localStorage.setItem('user_portal', "empresa"); // Guardamos el portal para referencia
 
-        // Redirección al panel de proveedor
         router.push('/proveedor/menupr');
       } else {
-        // Mostramos el error específico que devuelve Django (ej: "Correo no verificado")
         setError(data.error || "Credenciales incorrectas.");
         setPassword('');
       }
@@ -50,6 +50,7 @@ export default function ProviderLogin() {
     }
   };
 
+  // ... (El resto del JSX se mantiene exactamente igual)
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <Link
