@@ -47,7 +47,7 @@ export default function GestionRolesReal() {
         console.error("No hay sesión activa");
         return;
     }
-    const res = await adminService.actualizarRoles(token, usuarioId, [nuevoRol]);
+    const res = await adminService.actualizarRoles(usuarioId, [nuevoRol], token);
     if (!res.error) {
       cargarUsuarios(); // Recargamos para confirmar el cambio
     }
