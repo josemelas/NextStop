@@ -1,17 +1,43 @@
-// lib/adminService.ts
+// frontend/lib/adminService.ts
 
-//
-const API_URL = "https://seal-app-u4egd.ondigitalocean.app/api/usuarios/admin/gestion/";
+// Dejamos la URL base limpia para poder movernos entre los distintos módulos de admin
+const BASE_URL = "https://seal-app-u4egd.ondigitalocean.app/api";
 
 export const adminService = {
-  // Obtener la lista real (GET)
-  obtenerUsuarios: async () => {
+
+  /**
+   * 1. OBTENER ESTADÍSTICAS DEL DASHBOARD (GET)
+   */
+  obtenerEstadisticas: async (token: string) => {
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${BASE_URL}/usuarios/admin/dashboard/`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!res.ok) throw new Error(`Error ${res.status}: No se pudo conectar con el backend`);
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      return { status: res.status, data: await res.json() };
+    } catch (error) {
+      console.error("Error al obtener estadísticas:", error);
+      return { status: 500, data: { detail: "Error de conexión con el servidor" } };
+    }
+  },
+
+  /**
+   * 2. OBTENER LISTA REAL DE USUARIOS (GET)
+   */
+  obtenerUsuarios: async (token: string) => {
+    try {
+      const res = await fetch(`${BASE_URL}/usuarios/admin/gestion/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}: No autorizado o ruta no encontrada`);
       return await res.json();
     } catch (error) {
       console.error("Error al obtener usuarios:", error);
@@ -19,12 +45,17 @@ export const adminService = {
     }
   },
 
-  // Actualizar roles (PUT)
-  actualizarRoles: async (usuarioId: number, roles: string[]) => {
+  /**
+   * 3. ACTUALIZAR ROLES DE UN USUARIO (PUT)
+   */
+  actualizarRoles: async (usuarioId: number, roles: string[], token: string) => {
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${BASE_URL}/usuarios/admin/gestion/`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           usuario_id: usuarioId,
           roles: roles
@@ -32,19 +63,27 @@ export const adminService = {
       });
       return await res.json();
     } catch (error) {
-      return { error: "No se pudieron actualizar los roles" };
+      console.error("Error al actualizar roles:", error);
+      return { error: "No se pudieron actualizar los roles en el servidor" };
     }
   },
 
-  // Eliminar usuario (DELETE)
-  eliminarUsuario: async (usuarioId: number) => {
+  /**
+   * 4. ELIMINAR UN USUARIO DEL SISTEMA (DELETE)
+   */
+  eliminarUsuario: async (usuarioId: number, token: string) => {
     try {
-      // Pasamos el ID por parámetro de consulta como lo programó Brian
-      const res = await fetch(`${API_URL}?usuario_id=${usuarioId}`, {
-        method: 'DELETE'
+      // Pasamos el ID por parámetro de consulta como lo programó Brian, incluyendo la barra final obligatoria
+      const res = await fetch(`${BASE_URL}/usuarios/admin/gestion/?usuario_id=${usuarioId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       return await res.json();
     } catch (error) {
+      console.error("Error al eliminar usuario:", error);
       return { error: "No se pudo eliminar el usuario" };
     }
   }
