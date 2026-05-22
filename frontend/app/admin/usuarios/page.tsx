@@ -28,6 +28,11 @@ export default function GestionRolesReal() {
   const cargarUsuarios = async () => {
     setLoading(true);
     const token = localStorage.getItem('user_token');
+    if (!token) {
+        console.error("No hay sesión activa");
+        setLoading(false);
+        return;
+    }
     const data = await adminService.obtenerUsuarios(token);
     if (Array.isArray(data)) {
       setUsuarios(data);
