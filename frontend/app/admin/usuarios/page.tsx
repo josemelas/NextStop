@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { isAdmin } from '@/lib/adminGuard';
 import { adminService } from '@/lib/adminService';
-// Ya no necesitamos HeaderUsuario aquí
 import {
   ShieldCheck,
   TrendingUp,
@@ -14,7 +13,8 @@ import {
   Search,
   Trash2,
   RefreshCw,
-  Loader2
+  Loader2,
+  Lock // Importamos el ícono de candado para mayor efecto visual
 } from 'lucide-react';
 
 export default function GestionRolesReal() {
@@ -141,10 +141,15 @@ export default function GestionRolesReal() {
         </div>
       </aside>
 
-      {/* Agregué pt-12 (padding top) para dar espacio ahora que no está el header */}
-      <main className="flex-1 p-8 md:p-12 pt-12 overflow-y-auto">
-
-        {/* EL HEADER DE "ADMINISTRADOR" ESTABA AQUÍ Y HA SIDO REMOVIDO */}
+      <main className="flex-1 p-8 md:p-12 overflow-y-auto">
+        <div className="mb-8 flex justify-end">
+          <Link href="/cliente/perfil" className="flex items-center gap-4 bg-[#1e293b] p-2 pr-6 rounded-full border border-slate-800 hover:border-slate-600 transition-all cursor-pointer">
+            <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner uppercase">
+               A
+            </div>
+            <p className="text-sm font-black text-white">Administrador</p>
+          </Link>
+        </div>
 
         <div className="max-w-7xl mx-auto space-y-10">
 
@@ -224,13 +229,16 @@ export default function GestionRolesReal() {
 function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: any) {
   const [localRoles, setLocalRoles] = useState<string[]>([]);
 
-  // Normalizador para asegurar que los roles empaten exactamente con lo que pide Brian
+  // Regla de Protección: Bloqueamos la modificación a los fundadores/superusuarios
+  const correosProtegidos = ["maussbrian06@gmail.com", "jose123@hotmail.com"];
+  const esProtegido = correosProtegidos.includes(email.toLowerCase());
+
   const normalizarRol = (rolVago: string) => {
     const r = rolVago.toLowerCase();
     if (r.includes('admin')) return "Administrador";
     if (r.includes('agencia') || r.includes('empresa')) return "Empresa";
     if (r.includes('cliente')) return "Cliente";
-    return rolVago; // Por si hay otro raro
+    return rolVago;
   };
 
   useEffect(() => {
@@ -238,10 +246,12 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
     setLocalRoles(parsedRoles.map((r: string) => normalizarRol(r || "")));
   }, [roles]);
 
-  // Roles exactos que pide el backend
   const rolesDisponibles = ["Administrador", "Empresa", "Cliente"];
 
   const handleToggleRole = (rolClickeado: string) => {
+    // Si el usuario es protegido, bloqueamos la acción inmediatamente en el frontend
+    if (esProtegido) return;
+
     let nuevosRoles = [...localRoles];
 
     if (nuevosRoles.includes(rolClickeado)) {
@@ -249,45 +259,59 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
       if (nuevosRoles.length === 0) nuevosRoles = ["Cliente"];
     } else {
       nuevosRoles.push(rolClickeado);
-      // Regla de Negocio: Si tiene Administrador o Empresa, forzamos Cliente
       if ((rolClickeado === "Administrador" || rolClickeado === "Empresa") && !nuevosRoles.includes("Cliente")) {
         nuevosRoles.push("Cliente");
       }
     }
 
     setLocalRoles(nuevosRoles);
-    onRolesUpdate(id, nuevosRoles); // Se envían exactos: ["Administrador", "Cliente"] etc.
+    onRolesUpdate(id, nuevosRoles);
   };
 
   return (
-    <tr className="hover:bg-slate-800/50 transition-colors">
+    <tr className={`hover:bg-slate-800/50 transition-colors ${esProtegido ? 'bg-slate-900/20' : ''}`}>
       <td className="py-4 pl-4">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-[#0f172a] border border-slate-800 rounded-full flex items-center justify-center font-black text-slate-400 uppercase shadow-sm">
             {name.charAt(0)}
           </div>
-          <p className="font-bold text-white">{name}</p>
+          <div>
+            <p className="font-bold text-white flex items-center gap-2">
+              {name}
+              {esProtegido && <Lock className="w-3 h-3 text-orange-500" title="Perfil protegido" />}
+            </p>
+          </div>
         </div>
       </td>
-      <td className="py-4 text-slate-400">{email}</td>
+      <td className={`py-4 ${esProtegido ? 'text-slate-600' : 'text-slate-400'}`}>{email}</td>
       <td className="py-4">
-        <div className="flex flex-wrap gap-2">
+        <div className={`flex flex-wrap gap-2 ${esProtegido ? 'opacity-40' : ''}`}>
           {rolesDisponibles.map((rol) => {
             const hasRole = localRoles.includes(rol);
             let activeColor = "";
 
-            if (rol === "Administrador") activeColor = "bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30";
-            if (rol === "Empresa") activeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30";
-            if (rol === "Cliente") activeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30";
+            if (rol === "Administrador") activeColor = "bg-orange-500/20 text-orange-400 border-orange-500/30";
+            if (rol === "Empresa") activeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30";
+            if (rol === "Cliente") activeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
 
-            const inactiveColor = "bg-[#0f172a] text-slate-600 border-slate-800 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-400";
+            // Quitamos el efecto hover si está protegido
+            if (!esProtegido) {
+              if (rol === "Administrador") activeColor += " hover:bg-orange-500/30";
+              if (rol === "Empresa") activeColor += " hover:bg-blue-500/30";
+              if (rol === "Cliente") activeColor += " hover:bg-emerald-500/30";
+            }
+
+            const inactiveColor = esProtegido
+              ? "bg-[#0f172a] text-slate-600 border-slate-800"
+              : "bg-[#0f172a] text-slate-600 border-slate-800 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-400";
 
             return (
               <button
                 key={rol}
                 onClick={() => handleToggleRole(rol)}
-                title={hasRole ? `Clic para quitar rol de ${rol}` : `Clic para asignar rol de ${rol}`}
-                className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border transition-all duration-300 cursor-pointer ${hasRole ? activeColor : inactiveColor}`}
+                disabled={esProtegido}
+                title={esProtegido ? "No se pueden modificar roles de fundadores" : (hasRole ? `Clic para quitar rol de ${rol}` : `Clic para asignar rol de ${rol}`)}
+                className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border transition-all duration-300 ${esProtegido ? 'cursor-not-allowed' : 'cursor-pointer'} ${hasRole ? activeColor : inactiveColor}`}
               >
                 {rol}
               </button>
@@ -295,7 +319,7 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
           })}
         </div>
       </td>
-      <td className="py-4">
+      <td className={`py-4 ${esProtegido ? 'opacity-40' : ''}`}>
         <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
           activo ? 'bg-emerald-950 text-emerald-300 border-emerald-900' : 'bg-red-950 text-red-300 border-red-900'
         }`}>
@@ -306,7 +330,13 @@ function UserRow({ id, name, email, roles, activo, onRolesUpdate, onDelete }: an
       <td className="py-4 text-right pr-4">
         <button
           onClick={() => onDelete(id, name)}
-          className="p-2 bg-red-950/30 hover:bg-red-900/50 text-red-500 rounded-xl transition-all border border-red-900/20"
+          disabled={esProtegido}
+          title={esProtegido ? "Protegido por sistema" : "Eliminar usuario"}
+          className={`p-2 rounded-xl transition-all border ${
+            esProtegido
+            ? 'bg-slate-900 text-slate-700 border-slate-800 cursor-not-allowed opacity-40'
+            : 'bg-red-950/30 hover:bg-red-900/50 text-red-500 border-red-900/20 cursor-pointer'
+          }`}
         >
           <Trash2 size={16} />
         </button>
