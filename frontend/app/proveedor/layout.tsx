@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { verificarAccesoPortal } from '@/lib/authGuard';
+import { verificarAccesoPortal } from '../../lib/authGuard';
 
 export default function ProveedorLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
