@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { isAdmin } from '@/lib/adminGuard';
 import { adminService } from '@/lib/adminService';
-import { HeaderUsuario } from '@/app/components/NavCliente';
+// Ya no necesitamos HeaderUsuario aquí
 import {
   ShieldCheck,
   TrendingUp,
@@ -83,6 +83,7 @@ export default function GestionRolesReal() {
   return (
     <div className="min-h-screen bg-[#0f172a] flex font-sans text-slate-200">
 
+      {/* SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN */}
       <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen z-10">
         <div className="p-8 flex items-center gap-3">
           <div className="bg-orange-500 p-2 rounded-xl shadow-lg">
@@ -140,15 +141,10 @@ export default function GestionRolesReal() {
         </div>
       </aside>
 
-      <main className="flex-1 p-8 md:p-12 overflow-y-auto">
-        <div className="mb-8 flex justify-end">
-          <Link href="/cliente/perfil" className="flex items-center gap-4 bg-[#1e293b] p-2 pr-6 rounded-full border border-slate-800 hover:border-slate-600 transition-all cursor-pointer">
-            <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner uppercase">
-               A
-            </div>
-            <p className="text-sm font-black text-white">Administrador</p>
-          </Link>
-        </div>
+      {/* Agregué pt-12 (padding top) para dar espacio ahora que no está el header */}
+      <main className="flex-1 p-8 md:p-12 pt-12 overflow-y-auto">
+
+        {/* EL HEADER DE "ADMINISTRADOR" ESTABA AQUÍ Y HA SIDO REMOVIDO */}
 
         <div className="max-w-7xl mx-auto space-y-10">
 

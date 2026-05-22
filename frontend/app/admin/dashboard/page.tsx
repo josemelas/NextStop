@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ShieldCheck,
   Users,
@@ -11,7 +11,8 @@ import {
   Building2,
   Loader2,
   AlertCircle,
-  LogOut
+  LogOut,
+  Filter
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,6 +20,11 @@ import { adminService } from '@/lib/adminService';
 
 export default function AdminDashboard() {
   const pathname = usePathname();
+
+  // Obtenemos mes y año actuales para los valores por defecto
+  const fechaActual = new Date();
+  const [mesSeleccionado, setMesSeleccionado] = useState((fechaActual.getMonth() + 1).toString());
+  const [anioSeleccionado, setAnioSeleccionado] = useState(fechaActual.getFullYear().toString());
 
   const [kpis, setKpis] = useState({
     vuelos_totales: 0,
@@ -32,32 +38,55 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorApi, setErrorApi] = useState("");
 
-  useEffect(() => {
-    const cargarDatosDashboard = async () => {
-      if (typeof window !== "undefined") {
-        const tokenJWT = localStorage.getItem("user_token") || "";
+  const meses = [
+    { valor: '1', nombre: 'Enero' }, { valor: '2', nombre: 'Febrero' },
+    { valor: '3', nombre: 'Marzo' }, { valor: '4', nombre: 'Abril' },
+    { valor: '5', nombre: 'Mayo' }, { valor: '6', nombre: 'Junio' },
+    { valor: '7', nombre: 'Julio' }, { valor: '8', nombre: 'Agosto' },
+    { valor: '9', nombre: 'Septiembre' }, { valor: '10', nombre: 'Octubre' },
+    { valor: '11', nombre: 'Noviembre' }, { valor: '12', nombre: 'Diciembre' }
+  ];
 
-        if (!tokenJWT) {
-          setErrorApi("No se detectó una sesión activa de administrador. Por favor reingresa.");
-          setIsLoading(false);
-          return;
-        }
+  // Años dinámicos basados en el actual y anteriores
+  const anios = [
+    fechaActual.getFullYear().toString(),
+    (fechaActual.getFullYear() - 1).toString(),
+    (fechaActual.getFullYear() - 2).toString(),
+  ];
 
-        const res = await adminService.obtenerEstadisticas(tokenJWT);
+  // Función envuelta en useCallback para poder llamarla cuando cambien los filtros
+  const cargarDatosDashboard = useCallback(async () => {
+    if (typeof window !== "undefined") {
+      setIsLoading(true);
+      const tokenJWT = localStorage.getItem("user_token") || "";
 
-        if (res.status === 200) {
-          setKpis(res.data.kpis);
-          setDirectorioAgencias(res.data.directorio_agencias || []);
-          setEstadoAmadeus(res.data.estado_amadeus || "ONLINE");
-        } else {
-          setErrorApi(res.data.detail || "Error al sincronizar datos reales con DigitalOcean.");
-        }
+      if (!tokenJWT) {
+        setErrorApi("No se detectó una sesión activa de administrador. Por favor reingresa.");
         setIsLoading(false);
+        return;
       }
-    };
 
+      // Pasamos los filtros al servicio (si el valor es vacío, mandamos undefined)
+      const mesParam = mesSeleccionado || undefined;
+      const anioParam = anioSeleccionado || undefined;
+
+      const res = await adminService.obtenerEstadisticas(tokenJWT, mesParam, anioParam);
+
+      if (res.status === 200) {
+        setKpis(res.data.kpis);
+        setDirectorioAgencias(res.data.directorio_agencias || []);
+        setEstadoAmadeus(res.data.estado_amadeus || "ONLINE");
+      } else {
+        setErrorApi(res.data.detail || "Error al sincronizar datos reales con DigitalOcean.");
+      }
+      setIsLoading(false);
+    }
+  }, [mesSeleccionado, anioSeleccionado]);
+
+  // Se ejecuta al montar el componente y cada vez que cambia el mes o el año
+  useEffect(() => {
     cargarDatosDashboard();
-  }, []);
+  }, [cargarDatosDashboard]);
 
   const formatoMoneda = (valor: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(valor);
@@ -66,7 +95,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#0f172a] flex font-sans text-slate-200">
 
-      {/* SIDEBAR EXCLUSIVO DE ADMINISTRACIÓN (UNIFICADO) */}
+      {/* SIDEBAR */}
       <aside className="w-72 bg-[#1e293b] text-white flex flex-col shadow-2xl sticky top-0 h-screen">
         <div className="p-8 flex items-center gap-3">
           <div className="bg-orange-500 p-2 rounded-xl shadow-lg">
@@ -127,19 +156,49 @@ export default function AdminDashboard() {
       <main className="flex-1 p-8 md:p-12 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-10">
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
             <div>
               <h2 className="text-4xl font-black text-white tracking-tight italic uppercase">Estadísticas y KPIs</h2>
               <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitoreo operacional y financiero global en tiempo real</p>
             </div>
 
-            <div className="inline-flex items-center gap-3 bg-[#1e293b] px-5 py-3 rounded-full border border-slate-800 shadow-sm self-start">
-              <Globe className={`w-5 h-5 ${estadoAmadeus === 'ONLINE' ? 'text-emerald-500 animate-spin-[spin_3s_linear_infinite]' : 'text-red-500'}`} />
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                API GDS Amadeus: {' '}
-                <span className={`font-black ${estadoAmadeus === 'ONLINE' ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {estadoAmadeus}
-                </span>
+            <div className="flex flex-wrap items-center gap-4">
+              {/* FILTROS DE FECHA */}
+              <div className="flex items-center gap-2 bg-[#1e293b] p-2 rounded-full border border-slate-800 shadow-sm">
+                <div className="pl-3 text-slate-400">
+                  <Filter className="w-4 h-4" />
+                </div>
+                <select
+                  value={mesSeleccionado}
+                  onChange={(e) => setMesSeleccionado(e.target.value)}
+                  className="bg-transparent text-sm font-bold text-white outline-none cursor-pointer pl-1 pr-2 py-1 appearance-none hover:text-orange-400 transition-colors"
+                >
+                  <option value="" className="bg-slate-800">Todo el año</option>
+                  {meses.map(m => (
+                    <option key={m.valor} value={m.valor} className="bg-slate-800">{m.nombre}</option>
+                  ))}
+                </select>
+                <div className="w-px h-4 bg-slate-700"></div>
+                <select
+                  value={anioSeleccionado}
+                  onChange={(e) => setAnioSeleccionado(e.target.value)}
+                  className="bg-transparent text-sm font-bold text-white outline-none cursor-pointer pl-2 pr-4 py-1 appearance-none hover:text-orange-400 transition-colors"
+                >
+                  {anios.map(a => (
+                    <option key={a} value={a} className="bg-slate-800">{a}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* INDICADOR AMADEUS */}
+              <div className="inline-flex items-center gap-3 bg-[#1e293b] px-5 py-3 rounded-full border border-slate-800 shadow-sm">
+                <Globe className={`w-5 h-5 ${estadoAmadeus === 'ONLINE' ? 'text-emerald-500 animate-spin-[spin_3s_linear_infinite]' : 'text-red-500'}`} />
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  API GDS Amadeus: {' '}
+                  <span className={`font-black ${estadoAmadeus === 'ONLINE' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {estadoAmadeus}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -164,7 +223,7 @@ export default function AdminDashboard() {
                     <DollarSign className="w-7 h-7" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos del Mes</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos del Periodo</p>
                     <h3 className="text-xl font-black text-white tracking-tight mt-0.5">{formatoMoneda(kpis.ingresos_mes)}</h3>
                   </div>
                 </div>
@@ -174,7 +233,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="w-7 h-7" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reservas del Mes</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reservas del Periodo</p>
                     <h3 className="text-2xl font-black text-white tracking-tight mt-0.5">{kpis.ventas_mes}</h3>
                   </div>
                 </div>
