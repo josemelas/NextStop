@@ -9,8 +9,7 @@ import {
   Globe,
   BarChart3,
   Users,
-  ChevronRight,
-  UserCircle
+  ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,7 +17,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white font-sans">
 
-      {/* --- NAVBAR AZUL CORPORATIVO (Match con "Next") --- */}
+      {/* --- NAVBAR AZUL CORPORATIVO (Limpio y directo) --- */}
       <nav className="flex items-center justify-between px-12 py-4 bg-[#1e3a8a] text-white shadow-md">
         <div className="flex items-center gap-2">
           <div className="bg-white/10 p-2 rounded-lg">
@@ -30,13 +29,12 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-8 font-medium">
-          <a href="#" className="hover:text-orange-300 transition-colors">Destinos</a>
-          <a href="#" className="hover:text-orange-300 transition-colors">Nosotros</a>
-          <a href="#" className="hover:text-orange-300 transition-colors">Contacto</a>
-          <button className="flex items-center gap-2 bg-white/10 border border-white/20 px-5 py-2 rounded-full hover:bg-white/20 transition-all font-semibold">
-            <UserCircle className="w-5 h-5" />
-            Iniciar Sesión
-          </button>
+          <Link href="/nosotros" className="hover:text-orange-300 transition-colors">
+            Nosotros
+          </Link>
+          <Link href="/contacto" className="hover:text-orange-300 transition-colors">
+            Contacto
+          </Link>
         </div>
       </nav>
 
