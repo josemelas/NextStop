@@ -54,8 +54,13 @@ export default function GestionRolesReal() {
   };
 
   const handleEliminar = async (usuarioId: number, nombre: string) => {
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+        console.error("No hay sesión activa");
+        return;
+    }
     if (window.confirm(`¿Estás seguro de eliminar a ${nombre} del sistema?`)) {
-      const res = await adminService.eliminarUsuario(usuarioId);
+      const res = await adminService.eliminarUsuario(token, usuarioId);
       if (!res.error) {
         cargarUsuarios();
       }
