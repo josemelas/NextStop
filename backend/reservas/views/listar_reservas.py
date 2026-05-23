@@ -34,7 +34,9 @@ class ListarReservas(APIView):
                 fecha_salida_str = vuelo.fecha_salida.strftime("%Y-%m-%dT%H:%M:%S") if vuelo.fecha_salida else ""
                 fecha_llegada_str = vuelo.fecha_llegada.strftime("%Y-%m-%dT%H:%M:%S") if vuelo.fecha_llegada else ""
                 info_origen = mapa_aeropuertos.get(vuelo.origen, "")
+                origen_completo = f"{vuelo.origen} - {info_origen}" if info_origen else vuelo.origen
                 info_destino = mapa_aeropuertos.get(vuelo.destino, "")
+                destino_completo = f"{vuelo.destino} - {info_destino}" if info_destino else vuelo.destino
                 lista_reservas.append({
                     "id_reserva": r.id_reserva,
                     "codigo_confirmacion": r.codigo_confirmacion,
@@ -47,10 +49,8 @@ class ListarReservas(APIView):
                         "api_id": vuelo.api_id,
                         "aerolinea": vuelo.aerolinea,
                         "codigo_vuelo": vuelo.codigo_vuelo,
-                        "origen_codigo": vuelo.origen,
-                        "origen_nombre": info_origen if info_origen else "",
-                        "destino_codigo": vuelo.destino,
-                        "destino_nombre": info_destino if info_destino else "",
+                        "origen": origen_completo,
+                        "destino": destino_completo,
                         "fecha_salida": fecha_salida_str,
                         "fecha_llegada": fecha_llegada_str
                     }
