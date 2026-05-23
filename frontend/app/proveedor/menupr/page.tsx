@@ -80,7 +80,7 @@ export default function MenuProveedor() {
       }
     } catch (error) {
       console.error("Error al cargar el dashboard:", error);
-    } file {
+    } finally {
       setLoading(false);
     }
   };
