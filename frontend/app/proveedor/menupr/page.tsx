@@ -62,7 +62,13 @@ export default function MenuProveedor() {
     if (userDataStr) {
       const user = JSON.parse(userDataStr);
       setUserInfo(user);
-      cargarDashboard(user.id);
+      if (user.id_proveedor) {
+        cargarDashboard(user.id_proveedor);
+      } else {
+        console.error("Acceso denegado: Este usuario no tiene una agencia (id_proveedor) vinculada.");
+        setLoading(false);
+      }
+
     } else {
       setLoading(false);
     }
