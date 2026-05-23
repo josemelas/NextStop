@@ -48,7 +48,7 @@ class DashboardProveedor(APIView):
             })
         destinos_populares = (
             reservas_agencia.values('id_vuelo__destino')
-            .annotate(num_reservas=Count('id'))
+            .annotate(num_reservas=Count('id_reserva'))
             .order_by('-num_reservas')[:3]
         )
 
