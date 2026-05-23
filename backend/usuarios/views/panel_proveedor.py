@@ -44,7 +44,7 @@ class DashboardProveedor(APIView):
         vuelos_recientes_list = []
 
         for v in vuelos_recientes_query:
-            nombre_destino = f"{v.aeropuerto_destino.ciudad}, {v.aeropuerto_destino.pais}"
+            nombre_destino = f"{v.destino.ciudad}, {v.destino.pais}"
             vuelos_recientes_list.append({
                 "destino": nombre_destino,
                 "aerolinea": agencia.nombre,
