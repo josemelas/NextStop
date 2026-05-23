@@ -6,8 +6,29 @@ from datetime import datetime, date
 from django.utils.timezone import make_aware
 from vuelos.models import Vuelo, Proveedorapi
 from reservas.models import Reserva
+from apis_externas.models import Aeropuertos
 
 class GeneradorVuelos(APIView):
+    MAPA_CONTINENTES = {
+        # América
+        "México": "América", "Estados Unidos": "América", "Canadá": "América",
+        "Colombia": "América", "Argentina": "América", "Brasil": "América", "Perú": "América",
+        "Chile": "América", "Ecuador": "América", "Panamá": "América", "Costa Rica": "América",
+        "El Salvador": "América","Guatemala": "América","Cuba": "América","República Dominicana": "América",
+        "Puerto Rico": "América","Venezuela": "América",
+        # Europa
+        "España": "Europa", "Francia": "Europa", "Italia": "Europa", "Portugal": "Europa","Irlanda": "Europa",
+        "Reino Unido": "Europa", "Alemania": "Europa", "Países Bajos": "Europa","Suiza": "Europa",
+        "Austria": "Europa","Dinamarca": "Europa","Suecia": "Europa","Grecia": "Europa","Turquía": "Europa",
+        # Asia
+        "Japón": "Asia", "China": "Asia", "Corea del Sur": "Asia", "India": "Asia","Singapur": "Asia","Tailandia": "Asia","Malasia": "Asia","Indonesia": "Asia",
+        # Medio Oriente
+        "Emiratos Árabes Unidos": "Medio Oriente", "Qatar": "Medio Oriente", "Israel": "Medio Oriente",
+        # África
+        "Egipto": "África", "Sudáfrica": "África", "Marruecos": "África",
+        # Oceanía
+        "Australia": "Oceanía", "Nueva Zelanda": "Oceanía", "Fiyi": "Oceanía"
+    }
     def get(self, request):
         origen = request.query_params.get("origen")
         destino = request.query_params.get("destino")
@@ -15,11 +36,33 @@ class GeneradorVuelos(APIView):
 
         if not all([origen, destino, fecha_salida_str]):
             return Response({"error": "Faltan parámetros"}, status=400)
-
-        es_internacional = origen[:2] != destino[:2]
-        multiplicador_distancia = 3.5 if es_internacional else 1.0
-        horas_adicionales = random.randint(7, 12) if es_internacional else 0
-
+        aeropuertos_consulta = Aeropuertos.objects.filter(codigo__in=[origen, destino])
+        mapa_paises = {a.codigo: a.pais for a in aeropuertos_consulta}
+        pais_origen = mapa_paises.get(origen, "")
+        pais_destino = mapa_paises.get(destino, "")
+        continente_origen = self.MAPA_CONTINENTES.get(pais_origen, "Desconocido")
+        continente_destino = self.MAPA_CONTINENTES.get(pais_destino, "Desconocido")
+        es_nacional = False
+        es_continental = False
+        es_transcontinental = False
+        if pais_origen and pais_destino:
+            if pais_origen == pais_destino:
+                es_nacional = True
+            elif continente_origen == continente_destino and continente_origen != "Desconocido":
+                es_continental = True
+            else:
+                es_transcontinental = True
+        else:
+            es_nacional = True
+        if es_nacional:
+            multiplicador_distancia = 1.0
+            horas_adicionales = 0
+        elif es_continental:
+            multiplicador_distancia = 1.6
+            horas_adicionales = random.randint(2, 4)
+        elif es_transcontinental:
+            multiplicador_distancia = 3.5
+            horas_adicionales = random.randint(8, 14)
         fecha_vuelo = datetime.strptime(fecha_salida_str, "%Y-%m-%d").date()
         dias_antelacion = (fecha_vuelo - date.today()).days
         multiplicador_tiempo = 1.5 if dias_antelacion < 7 else (0.9 if dias_antelacion > 30 else 1.0)
