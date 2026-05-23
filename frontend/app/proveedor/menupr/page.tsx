@@ -68,7 +68,7 @@ export default function MenuProveedor() {
     }
   }, []);
 
-const cargarDashboard = async (idProveedor: number) => {
+  const cargarDashboard = async (idProveedor: number) => {
     try {
       const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/usuarios/proveedor/dashboard/?id_proveedor=${idProveedor}`);
 
@@ -76,27 +76,10 @@ const cargarDashboard = async (idProveedor: number) => {
         const data = await res.json();
         setDashboardData(data);
       } else {
-        // Si el servidor da error 500 (o cualquier otro), forzamos el error
-        throw new Error(`Error del servidor: Status ${res.status}`);
+        throw new Error("Error en la respuesta del servidor");
       }
     } catch (error) {
-      console.warn("⚠️ El backend de Brian falló (Error 500). Cargando datos de respaldo para que puedas ver el diseño...", error);
-
-      // MOCK DATA: Cargamos estos datos falsos para que la pantalla no se quede en blanco
-      setDashboardData({
-        agencia: { nombre: "SkyWings (Modo Fallback)" },
-        kpis: { vuelos_activos: 24, total_reservas: 1428, ingresos: 48250, visitas: 3200 },
-        vuelos_recientes: [
-          { destino: "Paris, Francia", aerolinea: "SkyWings", precio: 450, fecha: "15 Mar, 2026", estado: "Activo" },
-          { destino: "Tokio, Japon", aerolinea: "SkyWings", precio: 890, fecha: "18 Mar, 2026", estado: "Activo" },
-          { destino: "Nueva York, EE.UU.", aerolinea: "SkyWings", precio: 380, fecha: "20 Mar, 2026", estado: "Pendiente" }
-        ],
-        destinos_principales: [
-          { nombre: "Paris", reservas: 245 },
-          { nombre: "Tokio", reservas: 189 },
-          { nombre: "Nueva York", reservas: 156 }
-        ]
-      });
+      console.error("Error al cargar el dashboard:", error);
     } finally {
       setLoading(false);
     }
