@@ -62,7 +62,7 @@ class DashboardProveedor(APIView):
 
         return Response({
             "agencia": {
-                "id": agencia.id,
+                "id": agencia.id_proveedor,
                 "nombre": agencia.nombre
             },
             "kpis": {
