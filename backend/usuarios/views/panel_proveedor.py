@@ -19,7 +19,7 @@ class DashboardProveedor(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            agencia = Proveedorapi.objects.get(id=id_proveedor)
+            agencia = Proveedorapi.objects.get(id_proveedor=id_proveedor)
         except Proveedorapi.DoesNotExist:
             return Response(
                 {"error": "La empresa o agencia especificada no existe."},
