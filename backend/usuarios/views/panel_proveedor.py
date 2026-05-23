@@ -41,10 +41,17 @@ class DashboardProveedor(APIView):
         visitas_perfil = 1428
 
         vuelos_recientes_query = vuelos_agencia.order_by('-id_vuelo')[:5]
+        codigos_recientes = [v.destino for v in vuelos_recientes_query if v.destino]
+        info_aero_recientes = {}
+        if codigos_recientes:
+            info_aero_recientes = {
+                a.codigo: f"{a.ciudad}, {a.pais}"
+                for a in Aeropuertos.objects.filter(codigo__in=codigos_recientes)
+            }
         vuelos_recientes_list = []
-
         for v in vuelos_recientes_query:
-            nombre_destino = f"{v.destino.ciudad}, {v.destino.pais}"
+            codigo = v.destino
+            nombre_destino = info_aero_recientes.get(codigo, codigo) if codigo else "Sin destino"
             vuelos_recientes_list.append({
                 "destino": nombre_destino,
                 "aerolinea": agencia.nombre,
