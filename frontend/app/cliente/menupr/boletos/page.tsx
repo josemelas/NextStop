@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { Ticket, QrCode, Calendar, MapPin, Plane, Loader2, AlertCircle } from 'lucide-react';
-import { reservasService } from '@/lib/reservasService'; // Importación en minúsculas corregida
+import { reservasService } from '@/lib/reservasService';
 
 export default function MisBoletos() {
   const [boletos, setBoletos] = useState<any[]>([]);
@@ -34,13 +34,12 @@ export default function MisBoletos() {
           return;
         }
 
-        // Consultamos al backend en DigitalOcean
         const res = await reservasService.listarReservas(usuarioIdReal);
 
         if (res.status === 200 && Array.isArray(res.data)) {
           setBoletos(res.data);
         } else {
-          setError("Hubo un problema al recuperar tus pases de abordar desde el servidor.");
+          setError("Hubo un problemita al recuperar tus pases de abordar desde el servidor.");
         }
       }
       setLoading(false);
@@ -87,7 +86,6 @@ export default function MisBoletos() {
               ) : (
                 <div className="space-y-6">
                   {boletos.map((boleto, idx) => {
-                    // Formateo limpio de la fecha de salida estructurada por Brian
                     const fechaSalidaVuelo = new Date(boleto.vuelo.fecha_salida);
                     const fechaFormateada = fechaSalidaVuelo.toLocaleDateString('es-MX', {
                       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -113,18 +111,25 @@ export default function MisBoletos() {
                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{boleto.vuelo.aerolinea}</span>
                           </div>
 
-                          {/* Contenido de la Ruta */}
-                          <div className="flex items-center gap-8">
-                            <div>
-                              <p className="text-4xl font-black text-slate-900 tracking-tighter">{boleto.vuelo.origen}</p>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Salida</p>
+                          {/* ✈️ CONTENIDO DE LA RUTA MODIFICADO CON TUS ATRIBUTOS DESGLOSADOS */}
+                          <div className="flex items-center gap-6">
+                            {/* BLOQUE ORIGEN */}
+                            <div className="min-w-[120px]">
+                              <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{boleto.vuelo.origen_codigo}</p>
+                              <p className="text-[11px] font-bold text-slate-500 mt-1 max-w-[140px] truncate" title={boleto.vuelo.origen_nombre}>{boleto.vuelo.origen_nombre}</p>
+                              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-0.5">Salida</p>
                             </div>
+
+                            {/* LÍNEA DE AVIÓN DIVISORA */}
                             <div className="flex-1 border-b-2 border-dashed border-slate-200 pb-2 flex items-center justify-center relative">
                               <Plane className="w-5 h-5 text-orange-500 absolute -bottom-2.5 bg-white px-0.5" />
                             </div>
-                            <div>
-                              <p className="text-4xl font-black text-slate-900 tracking-tighter">{boleto.vuelo.destino}</p>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Destino</p>
+
+                            {/* BLOQUE DESTINO */}
+                            <div className="min-w-[120px] text-right">
+                              <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{boleto.vuelo.destino_codigo}</p>
+                              <p className="text-[11px] font-bold text-slate-500 mt-1 max-w-[140px] truncate inline-block" title={boleto.vuelo.destino_nombre}>{boleto.vuelo.destino_nombre}</p>
+                              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-0.5 block">Destino</p>
                             </div>
                           </div>
 
