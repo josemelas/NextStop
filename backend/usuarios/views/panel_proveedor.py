@@ -66,7 +66,7 @@ class DashboardProveedor(APIView):
         )
         codigos_iata = [d['id_vuelo__destino'] for d in destinos_populares if d['id_vuelo__destino']]
         info_aeropuertos = {
-            a.codigo_iata: f"{a.ciudad}, {a.pais}"
+            a.codigo: f"{a.ciudad}, {a.pais}"
             for a in Aeropuertos.objects.filter(codigo__in=codigos_iata)
         }
         top_destinos = []
