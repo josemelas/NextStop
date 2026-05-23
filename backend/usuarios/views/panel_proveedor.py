@@ -30,7 +30,7 @@ class DashboardProveedor(APIView):
 
         reservas_agencia = Reserva.objects.filter(id_vuelo__in=vuelos_agencia, estado_pago='PAGADO')
 
-        vuelos_activos = vuelos_agencia.filter(activo=True).count()
+        vuelos_activos = vuelos_agencia.count()
         total_reservas = reservas_agencia.count()
         ingresos_totales = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
         visitas_perfil = 1428
@@ -42,12 +42,10 @@ class DashboardProveedor(APIView):
             vuelos_recientes_list.append({
                 "destino": v.destino,
                 "aerolinea": agencia.nombre,
-                "precio": float(v.precio) if hasattr(v, 'precio') else 0.0,
-                "fecha": v.fecha_salida.strftime('%d %b, %Y') if hasattr(v,
-                                                                         'fecha_salida') and v.fecha_salida else "Sin fecha",
-                "estado": "Activo" if v.activo else "Pendiente"
+                "precio": float(v.precio_base) if hasattr(v, 'precio_base') else 0.0,
+                "fecha": v.fecha_salida.strftime('%d %b, %Y') if hasattr(v,'fecha_salida') and v.fecha_salida else "Sin fecha",
+                "estado": "Programado"
             })
-
         destinos_populares = (
             reservas_agencia.values('id_vuelo__destino')
             .annotate(num_reservas=Count('id'))
