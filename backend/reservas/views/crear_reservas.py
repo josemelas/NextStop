@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from apis_externas.models import Aeropuertos
 
 class CrearReserva(APIView):
     def post(self, request):
@@ -46,12 +47,19 @@ class CrearReserva(APIView):
                 try:
                     usuario_comprador = reserva.id_usuario
                     asunto_correo = f"Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
-
+                    aeropuertos_info = {
+                        a.codigo: f"{a.ciudad}, {a.pais}"
+                        for a in Aeropuertos.objects.filter(codigo__in=[vuelo.origen, vuelo.destino])
+                    }
+                    nombre_origen = aeropuertos_info.get(vuelo.origen, "")
+                    nombre_destino = aeropuertos_info.get(vuelo.destino, "")
                     contexto = {
                         "nombre_usuario": usuario_comprador.nombre,
                         "codigo_confirmacion": reserva.codigo_confirmacion,
-                        "origen": vuelo.origen,
-                        "destino": vuelo.destino,
+                        "origen_codigo": vuelo.origen,
+                        "origen_nombre": nombre_origen,
+                        "destino_codigo": vuelo.destino,
+                        "destino_nombre": nombre_destino,
                         "fecha": vuelo.fecha_salida.strftime("%d/%m/%Y"),
                         "hora": vuelo.fecha_salida.strftime("%H:%M"),
                         "asientos": reserva.asiento_asignado if reserva.asiento_asignado else 'Por asignar',

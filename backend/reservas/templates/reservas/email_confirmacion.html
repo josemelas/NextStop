@@ -12,30 +12,50 @@
                 <p style="color: #475569; font-size: 16px; line-height: 1.6;">Tu pago ha sido procesado de manera segura. Ya estamos preparando todo para tu próximo viaje. Aquí tienes los detalles de tu itinerario:</p>
 
                 <div style="background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 15px; padding: 25px; margin: 30px 0;">
-                    <div style="text-align: center; margin-bottom: 20px;">
+
+                    <div style="text-align: center; margin-bottom: 25px;">
                         <span style="font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase;">CÓDIGO DE RESERVA</span><br>
                         <span style="font-size: 28px; color: #f97316; font-weight: 900; letter-spacing: 2px;">{{ codigo_confirmacion }}</span>
                     </div>
 
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <tr>
+                            <td style="padding-bottom: 15px; width: 42%;">
+                                <span style="font-size: 11px; color: #94a3b8; font-weight: bold; text-transform: uppercase;">SALIDA</span><br>
+                                <div style="font-size: 32px; color: #0f172a; font-weight: 900; line-height: 1.1;">{{ origen_codigo }}</div>
+                                <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 2px;">{{ origen_nombre }}</div>
+                            </td>
+
+                            <td style="padding-bottom: 15px; width: 16%; text-align: center; vertical-align: middle;">
+                                <div style="font-size: 24px; color: #f97316;">✈️</div>
+                            </td>
+
+                            <td style="padding-bottom: 15px; width: 42%; text-align: right;">
+                                <span style="font-size: 11px; color: #94a3b8; font-weight: bold; text-transform: uppercase;">DESTINO</span><br>
+                                <div style="font-size: 32px; color: #0f172a; font-weight: 900; line-height: 1.1;">{{ destino_codigo }}</div>
+                                <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 2px;">{{ destino_nombre }}</div>
+                            </td>
+                        </tr>
+                    </table>
+
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
-                            <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
-                                <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">RUTA</span><br>
-                                <span style="font-size: 18px; color: #0f172a; font-weight: 800;">{{ origen }} ✈️ {{ destino }}</span>
-                            </td>
-                            <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right;">
+                            <td style="padding-top: 5px; width: 50%;">
                                 <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">FECHA DE VUELO</span><br>
                                 <span style="font-size: 16px; color: #0f172a; font-weight: bold;">{{ fecha }}</span>
                             </td>
-                        </tr>
-                        <tr>
-                            <td style="padding-top: 15px;">
+                            <td style="padding-top: 5px; width: 50%; text-align: right;">
                                 <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">HORA DE ABORDAJE</span><br>
                                 <span style="font-size: 16px; color: #0f172a; font-weight: bold;">{{ hora }} HRS</span>
                             </td>
-                            <td style="padding-top: 15px; text-align: right;">
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 20px;">
+                                &nbsp;
+                            </td>
+                            <td style="padding-top: 20px; text-align: right;">
                                 <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">ASIENTO(S)</span><br>
-                                <span style="font-size: 16px; color: #f97316; font-weight: 900;">{{ asientos }}</span>
+                                <span style="font-size: 18px; color: #f97316; font-weight: 900;">{{ asientos }}</span>
                             </td>
                         </tr>
                     </table>
