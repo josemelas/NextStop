@@ -35,14 +35,14 @@ class DashboardProveedor(APIView):
         ingresos_totales = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
         visitas_perfil = 1428
 
-        vuelos_recientes_query = vuelos_agencia.order_by('-id')[:5]
+        vuelos_recientes_query = vuelos_agencia.order_by('-id_vuelo')[:5]  # 💻 Usamos id_vuelo como corregimos antes
         vuelos_recientes_list = []
 
         for v in vuelos_recientes_query:
             vuelos_recientes_list.append({
                 "destino": v.destino,
                 "aerolinea": agencia.nombre,
-                "precio": float(v.precio_base) if hasattr(v, 'precio_base') else 0.0,
+                "precio": float(v.precio_base) if hasattr(v, 'precio_base') and v.precio_base else 0.0,
                 "fecha": v.fecha_salida.strftime('%d %b, %Y') if hasattr(v,'fecha_salida') and v.fecha_salida else "Sin fecha",
                 "estado": "Programado"
             })
