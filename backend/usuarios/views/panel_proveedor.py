@@ -12,7 +12,8 @@ class DashboardProveedor(APIView):
 
     def get(self, request):
         id_proveedor = request.query_params.get('id_proveedor')
-
+        mes = request.query_params.get('mes')
+        anio = request.query_params.get('anio')
         if not id_proveedor:
             return Response(
                 {"error": "Falta el parámetro id_proveedor en la consulta."},
@@ -25,17 +26,20 @@ class DashboardProveedor(APIView):
                 {"error": "La empresa o agencia especificada no existe."},
                 status=status.HTTP_404_NOT_FOUND
             )
-
         vuelos_agencia = Vuelo.objects.filter(id_proveedor=agencia)
-
+        if anio:
+            vuelos_agencia = vuelos_agencia.filter(fecha_salida__year=anio)
+        if mes:
+            vuelos_agencia = vuelos_agencia.filter(fecha_salida__month=mes)
         reservas_agencia = Reserva.objects.filter(id_vuelo__in=vuelos_agencia, estado_pago='PAGADO')
+        vuelos_agencia = Vuelo.objects.filter(id_proveedor=agencia)
 
         vuelos_activos = vuelos_agencia.count()
         total_reservas = reservas_agencia.count()
         ingresos_totales = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
         visitas_perfil = 1428
 
-        vuelos_recientes_query = vuelos_agencia.order_by('-id_vuelo')[:5]  # 💻 Usamos id_vuelo como corregimos antes
+        vuelos_recientes_query = vuelos_agencia.order_by('-id_vuelo')[:5]
         vuelos_recientes_list = []
 
         for v in vuelos_recientes_query:
