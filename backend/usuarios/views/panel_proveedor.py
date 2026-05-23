@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from django.db.models import Sum, Count
 from vuelos.models import Vuelo, Proveedorapi
 from reservas.models import Reserva
+from apis_externas.models import Aeropuertos
 
 
 class DashboardProveedor(APIView):
@@ -43,8 +44,9 @@ class DashboardProveedor(APIView):
         vuelos_recientes_list = []
 
         for v in vuelos_recientes_query:
+            nombre_destino = f"{v.aeropuerto_destino.ciudad}, {v.aeropuerto_destino.pais}"
             vuelos_recientes_list.append({
-                "destino": v.destino,
+                "destino": nombre_destino,
                 "aerolinea": agencia.nombre,
                 "precio": float(v.precio_base) if hasattr(v, 'precio_base') and v.precio_base else 0.0,
                 "fecha": v.fecha_salida.strftime('%d %b, %Y') if hasattr(v,'fecha_salida') and v.fecha_salida else "Sin fecha",
@@ -55,12 +57,18 @@ class DashboardProveedor(APIView):
             .annotate(num_reservas=Count('id_reserva'))
             .order_by('-num_reservas')[:3]
         )
-
+        codigos_iata = [d['id_vuelo__destino'] for d in destinos_populares if d['id_vuelo__destino']]
+        info_aeropuertos = {
+            a.codigo_iata: f"{a.ciudad}, {a.pais}"
+            for a in Aeropuertos.objects.filter(codigo__in=codigos_iata)
+        }
         top_destinos = []
         for item in destinos_populares:
-            if item['id_vuelo__destino']:
+            codigo = item['id_vuelo__destino']
+            if codigo:
+                nombre_formateado = info_aeropuertos.get(codigo, codigo)
                 top_destinos.append({
-                    "nombre": item['id_vuelo__destino'],
+                    "nombre": nombre_formateado,
                     "reservas": item['num_reservas']
                 })
 
