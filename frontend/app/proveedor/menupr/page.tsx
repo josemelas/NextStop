@@ -33,7 +33,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, active = f
       onClick={onClick}
       className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
         active
-          ? 'bg-[#2b3927] text-white shadow-inner' // Verde oscuro similar a tu diseño original
+          ? 'bg-[#2b3927] text-white shadow-inner'
           : 'text-slate-300 hover:bg-white/5 hover:text-white'
       }`}
     >
@@ -49,7 +49,6 @@ export default function MenuProveedor() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Menú ajustado a tus requerimientos
   const menuItems = [
     { icon: LayoutDashboard, label: 'Panel Principal' },
     { icon: PlusCircle, label: 'Agregar Vuelo' },
@@ -59,7 +58,6 @@ export default function MenuProveedor() {
   ];
 
   useEffect(() => {
-    // 1. Obtener datos del usuario logueado
     const userDataStr = localStorage.getItem('user_data');
     if (userDataStr) {
       const user = JSON.parse(userDataStr);
@@ -72,20 +70,21 @@ export default function MenuProveedor() {
 
   const cargarDashboard = async (idProveedor: number) => {
     try {
-      // Ajusta la URL base según cómo la configuró Brian en su urls.py
-      const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/proveedor/dashboard/?id_proveedor=${idProveedor}`);
+      const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/usuarios/proveedor/dashboard/?id_proveedor=${idProveedor}`);
+
       if (res.ok) {
         const data = await res.json();
         setDashboardData(data);
+      } else {
+        throw new Error("Error en la respuesta del servidor");
       }
     } catch (error) {
       console.error("Error al cargar el dashboard:", error);
-    } finally {
+    } file {
       setLoading(false);
     }
   };
 
-  // Renderizado del Panel Principal
   const renderPanelPrincipal = () => {
     if (loading) {
       return <div className="flex h-full items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-green-600" /></div>;
@@ -112,7 +111,7 @@ export default function MenuProveedor() {
               <span className="flex items-center text-xs font-bold text-green-600"><TrendingUp className="w-3 h-3 mr-1"/> +3</span>
             </div>
             <div>
-              <h3 className="text-3xl font-black text-slate-900">{kpis.vuelos_activos}</h3>
+              <h3 className="text-3xl font-black text-slate-900">{kpis?.vuelos_activos ?? 0}</h3>
               <p className="text-sm font-bold text-slate-400 mt-1">Vuelos Activos</p>
             </div>
           </div>
@@ -123,7 +122,7 @@ export default function MenuProveedor() {
               <span className="flex items-center text-xs font-bold text-green-600"><TrendingUp className="w-3 h-3 mr-1"/> +12%</span>
             </div>
             <div>
-              <h3 className="text-3xl font-black text-slate-900">{kpis.total_reservas}</h3>
+              <h3 className="text-3xl font-black text-slate-900">{kpis?.total_reservas ?? 0}</h3>
               <p className="text-sm font-bold text-slate-400 mt-1">Total Reservas</p>
             </div>
           </div>
@@ -134,7 +133,7 @@ export default function MenuProveedor() {
               <span className="flex items-center text-xs font-bold text-green-600"><TrendingUp className="w-3 h-3 mr-1"/> +8%</span>
             </div>
             <div>
-              <h3 className="text-3xl font-black text-slate-900">${kpis.ingresos.toLocaleString()}</h3>
+              <h3 className="text-3xl font-black text-slate-900">${(kpis?.ingresos ?? 0).toLocaleString()}</h3>
               <p className="text-sm font-bold text-slate-400 mt-1">Ingresos</p>
             </div>
           </div>
@@ -145,7 +144,7 @@ export default function MenuProveedor() {
               <span className="flex items-center text-xs font-bold text-green-600"><TrendingUp className="w-3 h-3 mr-1"/> +18%</span>
             </div>
             <div>
-              <h3 className="text-3xl font-black text-slate-900">{(kpis.visitas / 1000).toFixed(1)}K</h3>
+              <h3 className="text-3xl font-black text-slate-900">{((kpis?.visitas ?? 0) / 1000).toFixed(1)}K</h3>
               <p className="text-sm font-bold text-slate-400 mt-1">Visitas al Perfil</p>
             </div>
           </div>
@@ -171,7 +170,7 @@ export default function MenuProveedor() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-sm font-semibold text-slate-700">
-                  {vuelos_recientes.map((vuelo: any, idx: number) => (
+                  {vuelos_recientes?.map((vuelo: any, idx: number) => (
                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-4">
                         <div className="flex items-center gap-3">
@@ -191,8 +190,12 @@ export default function MenuProveedor() {
                       </td>
                     </tr>
                   ))}
-                  {vuelos_recientes.length === 0 && (
-                    <tr><td colSpan={4} className="py-8 text-center text-slate-400 font-bold">No hay vuelos recientes registrados.</td></tr>
+                  {(!vuelos_recientes || vuelos_recientes.length === 0) && (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-slate-400 font-bold">
+                        No hay vuelos recientes registrados.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -203,14 +206,13 @@ export default function MenuProveedor() {
           <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
             <h3 className="text-lg font-black text-slate-900 mb-6">Destinos Principales</h3>
             <div className="space-y-6">
-              {destinos_principales.map((destino: any, idx: number) => (
+              {destinos_principales?.map((destino: any, idx: number) => (
                 <div key={idx} className="flex items-center gap-4">
                   <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 flex-shrink-0">
                     {idx + 1}
                   </div>
                   <div className="w-12 h-12 bg-slate-200 rounded-xl overflow-hidden flex-shrink-0">
-                    {/* Placeholder para la imagen del destino */}
-                    <img src={`https://source.unsplash.com/100x100/?${destino.nombre},city`} alt={destino.nombre} className="w-full h-full object-cover" />
+                    <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=100&h=100&fit=crop" alt={destino.nombre} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex flex-col">
                     <span className="font-bold text-slate-900 leading-tight">{destino.nombre}</span>
@@ -218,7 +220,7 @@ export default function MenuProveedor() {
                   </div>
                 </div>
               ))}
-              {destinos_principales.length === 0 && (
+              {(!destinos_principales || destinos_principales.length === 0) && (
                 <p className="text-center text-slate-400 font-bold py-4">Sin datos de reservas aún.</p>
               )}
             </div>
