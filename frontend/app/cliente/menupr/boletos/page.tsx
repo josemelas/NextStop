@@ -18,7 +18,6 @@ export default function MisBoletos() {
       if (typeof window !== "undefined") {
         const userDataString = localStorage.getItem("user_data");
         let usuarioIdReal = null;
-
         if (userDataString) {
           try {
             const user = JSON.parse(userDataString);
