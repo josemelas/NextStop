@@ -137,7 +137,7 @@ export default function BuscadorVuelosNextStop() {
     // VALIDACIÓN ESTRICTA DEL AÑO 2026 (Se mantiene lo que ya teníamos)
     const selectedYear = new Date(fecha).getFullYear();
     if (selectedYear !== 2026) {
-      setError("Por el momento no hay vuelos registrados para fechas posteriores al año 2026, a menos que se agreguen posteriormente a nuestro catálogo.");
+      setError("Por el momento no hay vuelos registrados para la fecha seleccionada, lo lamentamos.");
       setVuelos([]);
       return;
     }
