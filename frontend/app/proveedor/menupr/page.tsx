@@ -9,7 +9,6 @@ import {
   BarChart3,
   Building2,
   LogOut,
-  Bell,
   TrendingUp,
   Calendar,
   DollarSign,
@@ -49,6 +48,10 @@ export default function MenuProveedor() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Estados para el filtro de estadísticas
+  const [mesFiltro, setMesFiltro] = useState('Todos');
+  const [anioFiltro, setAnioFiltro] = useState('Todos');
+
   const menuItems = [
     { icon: LayoutDashboard, label: 'Panel Principal' },
     { icon: PlusCircle, label: 'Agregar Vuelo' },
@@ -62,21 +65,31 @@ export default function MenuProveedor() {
     if (userDataStr) {
       const user = JSON.parse(userDataStr);
       setUserInfo(user);
-      if (user.id_proveedor) {
-        cargarDashboard(user.id_proveedor);
-      } else {
+      if (!user.id_proveedor) {
         console.error("Acceso denegado: Este usuario no tiene una agencia (id_proveedor) vinculada.");
         setLoading(false);
       }
-
     } else {
       setLoading(false);
     }
   }, []);
 
-  const cargarDashboard = async (idProveedor: number) => {
+  // Efecto que re-carga el dashboard cuando cambia el usuario o los filtros
+  useEffect(() => {
+    if (userInfo?.id_proveedor) {
+      cargarDashboard(userInfo.id_proveedor, mesFiltro, anioFiltro);
+    }
+  }, [userInfo?.id_proveedor, mesFiltro, anioFiltro]);
+
+  const cargarDashboard = async (idProveedor: number, mes: string, anio: string) => {
+    setLoading(true);
     try {
-      const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/usuarios/proveedor/dashboard/?id_proveedor=${idProveedor}`);
+      // Construcción dinámica de la URL con los filtros
+      let url = `https://seal-app-u4egd.ondigitalocean.app/api/usuarios/proveedor/dashboard/?id_proveedor=${idProveedor}`;
+      if (mes !== 'Todos') url += `&mes=${mes}`;
+      if (anio !== 'Todos') url += `&anio=${anio}`;
+
+      const res = await fetch(url);
 
       if (res.ok) {
         const data = await res.json();
@@ -103,10 +116,47 @@ export default function MenuProveedor() {
     const { kpis, vuelos_recientes, destinos_principales } = dashboardData;
 
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Panel del Proveedor</h2>
-          <p className="text-slate-500 font-medium mt-1">Bienvenido de nuevo. Aquí tienes un resumen de tu negocio de viajes.</p>
+      // Se retiró la animación para que el cambio de panel sea estático
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Panel del Proveedor</h2>
+            <p className="text-slate-500 font-medium mt-1">Bienvenido de nuevo. Aquí tienes un resumen de tu negocio de viajes.</p>
+          </div>
+
+          {/* Filtros de Mes y Año */}
+          <div className="flex items-center gap-3">
+            <select
+              value={mesFiltro}
+              onChange={(e) => setMesFiltro(e.target.value)}
+              className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm outline-none cursor-pointer focus:ring-2 focus:ring-green-500/20"
+            >
+              <option value="Todos">Mes (Todos)</option>
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+
+            <select
+              value={anioFiltro}
+              onChange={(e) => setAnioFiltro(e.target.value)}
+              className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm outline-none cursor-pointer focus:ring-2 focus:ring-green-500/20"
+            >
+              <option value="Todos">Año (Todos)</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
         </div>
 
         {/* Tarjetas de KPIs */}
@@ -199,7 +249,7 @@ export default function MenuProveedor() {
                   {(!vuelos_recientes || vuelos_recientes.length === 0) && (
                     <tr>
                       <td colSpan={4} className="py-8 text-center text-slate-400 font-bold">
-                        No hay vuelos recientes registrados.
+                        No hay vuelos registrados para este periodo.
                       </td>
                     </tr>
                   )}
@@ -285,11 +335,8 @@ export default function MenuProveedor() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-3 bg-slate-50 rounded-full border border-slate-200 relative text-slate-500 hover:text-slate-900 transition-all">
-              <Bell className="w-6 h-6" />
-              <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            <div className="flex items-center gap-3.5 border-l border-slate-100 pl-4">
+            {/* Se eliminó el botón de notificaciones (Bell) */}
+            <div className="flex items-center gap-3.5 border-slate-100 pl-4">
               <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center font-black text-white text-lg shadow-lg">
                 {userInfo?.nombre?.charAt(0) || 'P'}
               </div>
