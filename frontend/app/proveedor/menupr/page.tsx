@@ -8,6 +8,7 @@ import Link from 'next/link';
 import PanelPrincipal from './components/PanelPrincipal';
 import MisVuelos from './components/MisVuelos';
 import AgregarVuelo from './components/AgregarVuelo';
+import PerfilAgencia from './components/PerfilAgencia';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -102,8 +103,13 @@ export default function MenuProveedor() {
             <AgregarVuelo userInfo={userInfo} setActiveItem={setActiveItem} />
           )}
 
-          {/* Secciones secundarias en construcción */}
-          {(activeItem === 'Estadísticas' || activeItem === 'Perfil de Agencia') && (
+          {/* AQUÍ SE RENDERIZA EL NUEVO COMPONENTE */}
+          {activeItem === 'Perfil de Agencia' && (
+            <PerfilAgencia userInfo={userInfo} />
+          )}
+
+          {/* Secciones secundarias en construcción (Solo quedó Estadísticas) */}
+          {activeItem === 'Estadísticas' && (
             <div className="border-4 border-dashed border-slate-200 rounded-[2.5rem] h-[600px] flex items-center justify-center text-center p-12 bg-white">
               <div className="flex flex-col items-center">
                 <BarChart3 className="w-20 h-20 text-slate-200 mb-6" />
