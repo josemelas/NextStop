@@ -31,11 +31,13 @@ export default function PanelPrincipal({ userInfo, setActiveItem }: { userInfo: 
 
   return (
     <div className="space-y-8">
-      {/* Cabecera interna */}
+      {/* Cabecera interna con el nombre de la Agencia dinámico */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight italic">Bienvenido, {userInfo?.nombres || 'Socio'}</h2>
-          <p className="text-slate-500 font-medium text-sm mt-1">{dashboardData?.agencia?.nombre || 'Agencia Proveedora'}</p>
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight italic">
+            Bienvenido, {dashboardData?.agencia?.nombre || userInfo?.nombres || userInfo?.nombre || 'Socio'}
+          </h2>
+          <p className="text-slate-500 font-medium text-sm mt-1">Aquí tienes el resumen de tu negocio de viajes para hoy.</p>
         </div>
 
         {/* Filtros */}
