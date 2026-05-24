@@ -369,11 +369,11 @@ export default function ReservarVueloWizard() {
                           {/* Nombre y Apellido sin cambios especiales */}
                           <div className="space-y-1">
                             <label className="text-xs font-bold">Nombre(s) <span className="text-red-500">*</span></label>
-                            <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Juan" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                            <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Nombre del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
                           </div>
                           <div className="space-y-1">
                             <label className="text-xs font-bold">Apellidos <span className="text-red-500">*</span></label>
-                            <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Perez Garcia" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                            <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Apellidos del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
                           </div>
 
                           {/* VALIDACIÓN CORREO: Sin espacios ni mayúsculas */}
@@ -386,7 +386,7 @@ export default function ReservarVueloWizard() {
                                 const val = e.target.value.toLowerCase().replace(/\s/g, '');
                                 handleInputChange(idx, 'correo', val);
                               }}
-                              placeholder="juan@correo.com"
+                              placeholder="mi@correo.com"
                               className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none lowercase"
                               required
                             />
@@ -397,10 +397,15 @@ export default function ReservarVueloWizard() {
                             <label className="text-xs font-bold">Teléfono de Contacto <span className="text-red-500">*</span></label>
                             <div className="flex gap-2">
                               <select className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 outline-none">
-                                <option value="+52">+52</option>
-                                <option value="+1">+1</option>
-                                <option value="+34">+34</option>
-                                <option value="+57">+57</option>
+                                <option value="+52">+52 México</option>
+                                <option value="+1">+1 Estados Unidos / Canadá</option>
+                                <option value="+34">+34 España</option>
+                                <option value="+57">+57 Colombia</option>
+                                <option value="+54">+54 Argentina</option>
+                                <option value="+55">+55 Brasil</option>
+                                <option value="+56">+56 Chile</option>
+                                <option value="+51">+51 Perú</option>
+                                <option value="+58">+58 Venezuela</option>
                               </select>
                               <input
                                 type="text"
@@ -412,7 +417,7 @@ export default function ReservarVueloWizard() {
                                   const formatted = raw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
                                   handleInputChange(idx, 'telefono', formatted);
                                 }}
-                                placeholder="229-231-1401"
+                                placeholder="XXX-XXX-XXXX"
                                 className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
                                 required
                               />
@@ -427,8 +432,8 @@ export default function ReservarVueloWizard() {
                           <div className="space-y-1">
                             <label className="text-xs font-bold">Nacionalidad <span className="text-red-500">*</span></label>
                             <select value={pasajero.nacionalidad} onChange={(e) => handleInputChange(idx, 'nacionalidad', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold" required>
-                              <option value="Mexicana">Mexicana</option>
-                              <option value="Extranjero">Extranjero</option>
+                              <option value="Mexicano(a)">Mexicana</option>
+                              <option value="Extranjero(a)">Extranjero</option>
                             </select>
                           </div>
                           <div className="space-y-1 md:col-span-2">
@@ -437,6 +442,10 @@ export default function ReservarVueloWizard() {
                               <option value="Credencial para votar INE/IFE">Credencial para votar INE/IFE</option>
                               <option value="Pasaporte vigente">Pasaporte vigente</option>
                               <option value="Licencia de conducir vigente">Licencia de conducir vigente</option>
+                              <option value="Cartilla militar">Cartilla militar</option>
+                              <option value="Acta de nacimiento">Acta de nacimiento</option>
+                              <option value="Credencial escolar">Credencial escolar</option>
+                              <option value="Visa">Visa</option>
                             </select>
                           </div>
                         </div>
@@ -452,7 +461,7 @@ export default function ReservarVueloWizard() {
 
                     <div className="bg-[#4d7c44]/5 border border-[#4d7c44]/20 p-4 rounded-xl flex items-center gap-3 text-xs font-bold text-[#4d7c44]">
                       <ShieldCheck className="w-5 h-5 flex-shrink-0" />
-                      <span>Tu informacion de pago esta protegida con encriptacion de 256 bits</span>
+                      <span>Tu informacion de pago esta protegida.</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
@@ -462,15 +471,15 @@ export default function ReservarVueloWizard() {
                       </div>
                       <div className="space-y-1 md:col-span-2">
                         <label className="text-xs font-bold">Nombre en la Tarjeta</label>
-                        <input type="text" placeholder="JUAN PEREZ" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none uppercase" />
+                        <input type="text" placeholder="Nombre del propietario" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none uppercase" />
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-bold">Fecha de Vencimiento</label>
                         <input type="text" placeholder="MM/AA" maxLength={5} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                       </div>
                       <div className="space-y-1">
+                        <input type="password" placeholder="•••" maxLength={3} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                         <label className="text-xs font-bold">CVV</label>
-                        <input type="password" placeholder="123" maxLength={3} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                       </div>
                     </div>
                   </div>

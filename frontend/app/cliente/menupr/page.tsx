@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Plane, Calendar, MapPin, Globe, Loader2, AlertCircle, Star } from 'lucide-react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { vuelosService } from '@/lib/vuelosService';
-import { favoritosService } from '@/lib/favoritosService'; // NUEVO: Importación de tu servicio de favoritos
+import { favoritosService } from '@/lib/favoritosService';
 import { useRouter } from 'next/navigation';
 
 export default function BuscadorVuelosNextStop() {
@@ -13,7 +13,7 @@ export default function BuscadorVuelosNextStop() {
   // Estados para inputs y búsqueda
   const [origenQuery, setOrigenQuery] = useState('');
   const [destinoQuery, setDestinoQuery] = useState('');
-  const [origenFinal, setOrigenFinal] = useState(''); // Código IATA (ej: MEX)
+  const [origenFinal, setOrigenFinal] = useState('');
   const [destinoFinal, setDestinoFinal] = useState('');
   const [fecha, setFecha] = useState('');
 
@@ -24,7 +24,7 @@ export default function BuscadorVuelosNextStop() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // NUEVOS ESTADOS: Control de favoritos y carga asíncrona individual
+  // Estados: Control de favoritos y carga asíncrona individual
   const [favoritosIds, setFavoritosIds] = useState<string[]>([]);
   const [loadingEstrella, setLoadingEstrella] = useState<string | null>(null);
   const [usuarioId, setUsuarioId] = useState<number | null>(null);
@@ -55,7 +55,15 @@ export default function BuscadorVuelosNextStop() {
     return () => clearTimeout(delay);
   }, [destinoQuery, destinoFinal]);
 
-  // NUEVO EFFECT: Cargar información de sesión y favoritos del usuario al montar el componente
+  // NUEVO EFFECT: Limpia los resultados y errores visuales si se modifica/borra el origen o destino
+  useEffect(() => {
+    if (!origenFinal || !destinoFinal) {
+      setVuelos([]);
+      setError("");
+    }
+  }, [origenFinal, destinoFinal]);
+
+  // Cargar información de sesión y favoritos del usuario al montar el componente
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userDataString = localStorage.getItem("user_data");
@@ -76,24 +84,21 @@ export default function BuscadorVuelosNextStop() {
   const cargarFavoritosIniciales = async (id: number) => {
     const favs = await favoritosService.listarFavoritos(id);
     if (Array.isArray(favs)) {
-      // Filtramos únicamente los identificadores de recurso de tipo VUELO
       const ids = favs.filter(f => f.tipo_recurso === 'VUELO').map(f => f.id_recurso);
       setFavoritosIds(ids);
     }
   };
 
-  // NUEVA FUNCIÓN: Alterna el estado de favoritos conectándose con DigitalOcean
   const handleToggleFavorito = async (vueloApiId: string) => {
     if (!usuarioId) {
       alert("Por favor, inicia sesión para poder agregar vuelos a tus favoritos.");
       return;
     }
 
-    setLoadingEstrella(vueloApiId); // Bloqueamos momentáneamente la estrella del vuelo interactuado
+    setLoadingEstrella(vueloApiId);
     const yaEsFavorito = favoritosIds.includes(vueloApiId);
 
     if (yaEsFavorito) {
-      // Si ya está guardado, llamamos al DELETE con la opción B de Brian
       const res = await favoritosService.eliminarFavorito(usuarioId, vueloApiId, 'VUELO');
       if (res.status === 200) {
         setFavoritosIds(prev => prev.filter(id => id !== vueloApiId));
@@ -101,7 +106,6 @@ export default function BuscadorVuelosNextStop() {
         alert(res.data?.error || "Ocurrió un inconveniente al remover de favoritos.");
       }
     } else {
-      // Si es nuevo, mandamos el payload al POST
       const res = await favoritosService.agregarFavorito(usuarioId, vueloApiId, 'VUELO');
       if (res.status === 201) {
         setFavoritosIds(prev => [...prev, vueloApiId]);
@@ -310,6 +314,7 @@ export default function BuscadorVuelosNextStop() {
               );
             })}
 
+            {/* PANTALLA DE INICIO (SI NO HAY VUELOS, CARGA, NI ERRORES) */}
             {!loading && vuelos.length === 0 && !error && (
               <div className="text-center py-20 bg-white rounded-[4rem] border-2 border-dashed border-slate-200">
                 <Plane className="w-16 h-16 text-slate-100 mx-auto mb-4" />
