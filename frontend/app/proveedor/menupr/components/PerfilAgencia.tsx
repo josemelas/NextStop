@@ -35,7 +35,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
       setTelefono(userInfo.telefono || "");
 
       if (userInfo.foto_perfil) {
-        // Aseguramos que la URL sea absoluta si viene relativa desde Django
         const urlBase = userInfo.foto_perfil.startsWith('http')
           ? ''
           : 'https://seal-app-u4egd.ondigitalocean.app';
@@ -44,7 +43,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
     }
   }, [userInfo]);
 
-  // --- LÓGICA DE FOTO DE PERFIL ---
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -67,7 +65,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
       return;
     }
 
-    // Usamos FormData porque podríamos estar enviando un archivo de imagen
     const formData = new FormData();
     formData.append('nombre', nombre);
     formData.append('email', correo);
@@ -79,11 +76,11 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
     }
 
     try {
+      // AQUÍ ESTÁ LA URL CORREGIDA HACIA /editar/ CON MÉTODO PATCH
       const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/editar/', {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`
-          // No ponemos Content-Type, el navegador lo calcula automáticamente para FormData
         },
         body: formData
       });
@@ -93,7 +90,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
       if (res.ok) {
         setMsgInfo({ type: 'success', text: 'Información comercial actualizada correctamente.' });
 
-        // Sincronizamos el LocalStorage con los datos exactos que nos regresa el backend
         if (data.usuario) {
            localStorage.setItem('user_data', JSON.stringify(data.usuario));
 
@@ -102,7 +98,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
              setFotoUrl(`${urlBase}${data.usuario.foto_perfil}`);
            }
         }
-
         setTimeout(() => setMsgInfo(null), 4000);
       } else {
         setMsgInfo({ type: 'error', text: data.detail || 'Ocurrió un problema al guardar los datos.' });
@@ -138,6 +133,7 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
     setLoadingPwd(true);
 
     try {
+      // AQUÍ ESTÁ LA URL CORREGIDA HACIA /editar/ CON MÉTODO PATCH
       const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/editar/', {
         method: 'PATCH',
         headers: {
@@ -145,9 +141,8 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          password_actual: passwordActual, // Según la estructura compartida por tu compañero
-          nueva_password: nuevaPassword,   // Según la imagen de instrucciones
-          password: nuevaPassword          // Según el código python (data.get('password'))
+          password_actual: passwordActual,
+          password: nuevaPassword  // Mandamos "password" porque así lo espera el código Python de Brian
         })
       });
 
