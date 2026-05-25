@@ -16,6 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'clave-segura-local')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
+    'seal-app-u4egd.ondigitalocean.app',
     'nextstop-app-u9cvd.ondigitalocean.app',
     'localhost',
     '127.0.0.1',
