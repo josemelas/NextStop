@@ -17,7 +17,6 @@ class EnviarMensajeContacto(APIView):
                 {"error": "Todos los campos (nombre, correo, mensaje) son obligatorios."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         try:
             asunto = f"Nuevo mensaje de NextStop de: {nombre}"
 
