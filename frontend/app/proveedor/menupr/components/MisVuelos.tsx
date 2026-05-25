@@ -66,9 +66,9 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
       }
     } catch (error) {
       console.error(error);
-    } finally {
+    } fillly(() => {
       setLoading(false);
-    }
+    });
   };
 
   const handleEliminar = async (apiId: string) => {
@@ -98,7 +98,7 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
         </div>
         <button
           onClick={() => {
-            localStorage.removeItem('vuelo_editar'); // Limpiamos para asegurar que sea "Crear"
+            localStorage.removeItem('vuelo_editar');
             setActiveItem('Agregar Vuelo');
           }}
           className="bg-[#4d7c44] hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer border-none"
@@ -116,7 +116,6 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
           <option value="Todos los Estados">Todos los Estados</option>
           <option value="Disponible">Disponible</option>
           <option value="Limitado">Limitado</option>
-          <option value="Agotado">Agotado</option>
           <option value="Finalizado">Finalizado</option>
         </select>
       </div>
@@ -137,9 +136,9 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
             </thead>
             <tbody className="divide-y divide-slate-50 text-sm font-semibold">
               {filtrados.map((v) => {
+                // Lógica de colores optimizada sin el estado Agotado
                 let badgeColor = "bg-green-100 text-green-700";
                 if (v.disponibilidad === "Limitado") badgeColor = "bg-orange-100 text-orange-700";
-                if (v.disponibilidad === "Agotado") badgeColor = "bg-red-100 text-red-700";
                 if (v.disponibilidad === "Finalizado") badgeColor = "bg-slate-100 text-slate-500 border border-slate-200";
 
                 return (
@@ -161,8 +160,6 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
                       <button onClick={() => setMenuAbiertoId(menuAbiertoId === v.api_id ? null : v.api_id)} className="p-2 text-slate-400 hover:text-slate-900 bg-transparent border-none cursor-pointer"><MoreHorizontal className="w-5 h-5" /></button>
                       {menuAbiertoId === v.api_id && (
                         <div className="absolute right-8 top-10 bg-white border border-slate-100 shadow-xl rounded-xl py-2 w-36 z-50">
-
-                          {/* BOTÓN EDITAR */}
                           <button
                             onClick={() => {
                               localStorage.setItem('vuelo_editar', JSON.stringify(v));
@@ -172,7 +169,6 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
                           >
                             <Edit2 className="w-4 h-4" /> Editar
                           </button>
-
                           <button onClick={() => handleEliminar(v.api_id)} className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 bg-transparent border-none cursor-pointer"><Trash2 className="w-4 h-4" /> Eliminar</button>
                         </div>
                       )}
