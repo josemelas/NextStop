@@ -5,6 +5,8 @@ from django.db import transaction
 import uuid
 from vuelos.models import Vuelo
 from reservas.models import Reserva
+from favoritos.models import Favorito
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -27,7 +29,17 @@ class CrearReserva(APIView):
         try:
             with transaction.atomic():
                 vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
+                reserva_existente = Reserva.objects.filter(
+                    id_usuario_id=id_usuario,
+                    id_vuelo=vuelo,
+                    estado_pago='PAGADO'
+                ).exists()
 
+                if reserva_existente:
+                    return Response(
+                        {"error": "Ya tienes una reserva activa para este vuelo. No puedes comprarlo dos veces."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 if vuelo.asientos_disponibles < pasajeros:
                     return Response({"error": "El vuelo ya no tiene suficientes asientos disponibles"},
                                     status=status.HTTP_400_BAD_REQUEST)
@@ -46,14 +58,25 @@ class CrearReserva(APIView):
                     cantidad_pasajeros=pasajeros,
                     asiento_asignado=asientos
                 )
+                try:
+                    Favorito.objects.filter(
+                        id_usuario_id=id_usuario,
+                        tipo_recurso='VUELO',
+                        id_recurso=api_id_vuelo
+                    ).delete()
+                except Exception as e:
+                    print(f"Nota: Fallo silencioso al borrar favorito: {str(e)}")
+                # ----------------------------------------
 
                 try:
                     usuario_comprador = reserva.id_usuario
                     pasajeros_a_notificar = []
+
                     pasajeros_a_notificar.append({
                         "nombre": usuario_comprador.nombre,
                         "correo": usuario_comprador.email
                     })
+
                     for pasajero in datos_pasajeros:
                         correo_extra = pasajero.get('correo')
                         nombre_extra = pasajero.get('nombre')
@@ -87,6 +110,7 @@ class CrearReserva(APIView):
                             "asientos": reserva.asiento_asignado if reserva.asiento_asignado else 'Por asignar',
                             "monto": reserva.monto_total
                         }
+
                         html_mensaje = render_to_string('reservas/email_confirmacion.html', contexto)
                         mensaje_texto = strip_tags(html_mensaje)
 
@@ -107,6 +131,7 @@ class CrearReserva(APIView):
                     "codigo_confirmacion": reserva.codigo_confirmacion,
                     "estado": reserva.estado_pago
                 }, status=status.HTTP_201_CREATED)
+
         except Vuelo.DoesNotExist:
             return Response({"error": "El vuelo seleccionado ya no está disponible"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
