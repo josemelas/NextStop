@@ -7,26 +7,20 @@ from vuelos.models import Proveedorapi
 
 class EliminarVuelo(APIView):
     def delete(self, request):
-        api_id_vuelo = request.query_params.get('vuelo_id')
-        id_usuario = request.query_params.get('usuario_id')
-
-        if not api_id_vuelo or not id_usuario:
-            return Response({"error": "Faltan parámetros (vuelo_id o usuario_id)"}, status=status.HTTP_400_BAD_REQUEST)
-
+        vuelo_id = request.query_params.get('vuelo_id')
+        usuario_id = request.query_params.get('usuario_id')
+        if not vuelo_id or not usuario_id:
+            return Response({"error": "Faltan parámetros"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            usuario_logueado = Usuario.objects.get(id=id_usuario)
-            try:
-                perfil_proveedor = Proveedorapi.objects.get(usuario=usuario_logueado)
-            except Proveedorapi.DoesNotExist:
+            usuario_logueado = Usuario.objects.get(id=usuario_id)
+            perfil_proveedor = usuario_logueado.id_proveedor
+            if not perfil_proveedor:
                 return Response({"error": "Este usuario no es una aerolínea autorizada."},
                                 status=status.HTTP_403_FORBIDDEN)
-
-            vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
-
+            vuelo = Vuelo.objects.get(api_id=vuelo_id)
             if vuelo.id_proveedor != perfil_proveedor:
                 return Response({"error": "Operación rechazada: No puedes borrar vuelos de la competencia"},
                                 status=status.HTTP_403_FORBIDDEN)
-
             vuelo.delete()
             return Response({"mensaje": "Vuelo eliminado exitosamente"}, status=status.HTTP_200_OK)
 
