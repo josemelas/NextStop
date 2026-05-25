@@ -58,7 +58,7 @@ class EliminarVuelo(APIView):
                             "hora": vuelo.fecha_salida.strftime("%H:%M"),
                             "monto": reserva.monto_total
                         }
-                        html_mensaje = render_to_string('vuelos/email_cancelación.html', contexto)
+                        html_mensaje = render_to_string('vuelos/email_cancelacion.html', contexto)
                         mensaje_texto = strip_tags(html_mensaje)
 
                         send_mail(
