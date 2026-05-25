@@ -102,7 +102,7 @@ class GeneradorVuelos(APIView):
                 fecha_salida=make_aware(obj_salida),
                 fecha_llegada=make_aware(obj_llegada),
                 precio_base=round(precio_final, 2),
-                asientos_disponibles=random.randint(10, 75)
+                asientos_disponibles=random.randint(10, 54)
             )
             nuevos_vuelos.append(vuelo_creado)
 
