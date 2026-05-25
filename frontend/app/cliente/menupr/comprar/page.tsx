@@ -34,7 +34,9 @@ export default function ReservarVueloWizard() {
 
   const [codigoConfirmacionBackend, setCodigoConfirmacionBackend] = useState("");
   const [errorBackend, setErrorBackend] = useState("");
-  const [errorValidacion, setErrorValidacion] = useState(""); // Alerta para campos vacíos
+  const [errorValidacion, setErrorValidacion] = useState("");
+
+  const hoy = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const vueloGuardado = localStorage.getItem('vuelo_seleccionado');
@@ -78,6 +80,11 @@ export default function ReservarVueloWizard() {
 
   const precioBaseTotal = precioUnidad * cantidadPasajeros;
   const precioFinalTotal = precioBaseTotal + cargosExtra;
+  const asientosFaltantes = cantidadPasajeros - asientosSeleccionados.length;
+
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
 
   const handlePasajerosChange = (num: number) => {
     setCantidadPasajeros(num);
@@ -89,7 +96,7 @@ export default function ReservarVueloWizard() {
     const nuevosDatos = [...datosPasajeros];
     nuevosDatos[idx][campo] = valor;
     setDatosPasajeros(nuevosDatos);
-    if (errorValidacion) setErrorValidacion(""); // Limpiar error al escribir
+    if (errorValidacion) setErrorValidacion("");
   };
 
   const toggleAsiento = (asientoId: string, tipo: string) => {
@@ -108,13 +115,12 @@ export default function ReservarVueloWizard() {
     }
   };
 
-  // VALIDACIÓN OBLIGATORIA DEL PASO 2
   const validarPasoPasajeros = () => {
     for (let i = 0; i < datosPasajeros.length; i++) {
       const p = datosPasajeros[i];
       if (!p.nombres.trim() || !p.apellidos.trim() || !p.fechaNacimiento || !p.nacionalidad.trim() || !p.correo.trim() || !p.telefono.trim()) {
         setErrorValidacion(`Por favor, rellena todos los campos obligatorios para el Viajero ${i + 1}.`);
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube la pantalla para ver el error
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
       }
     }
@@ -219,7 +225,7 @@ export default function ReservarVueloWizard() {
                 <p>👥 <span className="text-slate-900">Pasajeros:</span> {cantidadPasajeros}</p>
                 <p>💺 <span className="text-slate-900">Asientos Reservados:</span> {asientosSeleccionados.join(', ')}</p>
                 <p>🔑 <span className="text-slate-900">Código de Confirmación:</span> <span className="font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">{codigoConfirmacionBackend}</span></p>
-                <p>💵 <span className="text-slate-900">Monto Total Cargado:</span> ${precioFinalTotal.toLocaleString()} {moneda}</p>
+                <p>💵 <span className="text-slate-900">Monto Total Cargado:</span> ${formatCurrency(precioFinalTotal)} {moneda}</p>
               </div>
               <button onClick={() => router.push('/cliente/menupr')} className="w-full bg-slate-900 hover:bg-orange-500 text-white font-black py-4 rounded-xl transition-all uppercase text-xs tracking-widest cursor-pointer">
                 Finalizar y volver al menú principal
@@ -286,7 +292,19 @@ export default function ReservarVueloWizard() {
                     </div>
 
                     <div>
-                      <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider mb-4">Selecciona tu Asiento</h3>
+                      <div className="flex items-end justify-between mb-4">
+                        <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">Selecciona tu Asiento</h3>
+                        {asientosFaltantes > 0 ? (
+                          <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-md border border-orange-100">
+                            Falta seleccionar {asientosFaltantes} asiento{asientosFaltantes !== 1 ? 's' : ''}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-[#4d7c44] bg-[#4d7c44]/10 px-2 py-1 rounded-md border border-[#4d7c44]/20">
+                            ¡Asientos completos!
+                          </span>
+                        )}
+                      </div>
+
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 font-bold text-xs text-slate-500">
                         <div className="flex items-center gap-2"><div className="w-4 h-4 bg-slate-100 border border-slate-200 rounded"></div> Disponible</div>
                         <div className="flex items-center gap-2"><div className="w-4 h-4 bg-[#4d7c44] rounded"></div> Seleccionado</div>
@@ -339,91 +357,102 @@ export default function ReservarVueloWizard() {
                 )}
 
                 {/* PASO 2: FORMULARIO DETALLADO DE PASAJEROS */}
-                // PASO 2: FORMULARIO DETALLADO DE PASAJEROS (VALIDADO)
-{step === 2 && (
-  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
-    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">Datos del Pasajero</h3>
+                {step === 2 && (
+                  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
+                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">Datos del Pasajero</h3>
 
-    {datosPasajeros.map((pasajero, idx) => (
-      <div key={idx} className="space-y-4 pb-6 border-b border-slate-100 last:border-none">
-        <p className="text-xs font-black text-[#4d7c44] uppercase tracking-wider">Viajero {idx + 1} — Asiento Asignado: {asientosSeleccionados[idx] || "N/A"}</p>
+                    {datosPasajeros.map((pasajero, idx) => (
+                      <div key={idx} className="space-y-4 pb-6 border-b border-slate-100 last:border-none">
+                        <p className="text-xs font-black text-[#4d7c44] uppercase tracking-wider">Viajero {idx + 1} — Asiento Asignado: {asientosSeleccionados[idx] || "N/A"}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
-          {/* Nombre y Apellido sin cambios especiales */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold">Nombre(s) <span className="text-red-500">*</span></label>
-            <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Juan" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold">Apellidos <span className="text-red-500">*</span></label>
-            <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Perez Garcia" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
-          </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
+                          {/* Nombre y Apellido sin cambios especiales */}
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold">Nombre(s) <span className="text-red-500">*</span></label>
+                            <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Nombre del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold">Apellidos <span className="text-red-500">*</span></label>
+                            <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Apellidos del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                          </div>
 
-          {/* VALIDACIÓN CORREO: Sin espacios ni mayúsculas */}
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-bold">Correo Electrónico <span className="text-red-500">*</span></label>
-            <input
-              type="email"
-              value={pasajero.correo}
-              onChange={(e) => {
-                const val = e.target.value.toLowerCase().replace(/\s/g, '');
-                handleInputChange(idx, 'correo', val);
-              }}
-              placeholder="juan@correo.com"
-              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none lowercase"
-              required
-            />
-          </div>
+                          {/* VALIDACIÓN CORREO: Sin espacios ni mayúsculas */}
+                          <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-bold">Correo Electrónico <span className="text-red-500">*</span></label>
+                            <input
+                              type="email"
+                              value={pasajero.correo}
+                              onChange={(e) => {
+                                const val = e.target.value.toLowerCase().replace(/\s/g, '');
+                                handleInputChange(idx, 'correo', val);
+                              }}
+                              placeholder="mi@correo.com"
+                              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none lowercase"
+                              required
+                            />
+                          </div>
 
-          {/* VALIDACIÓN TELÉFONO: Selector país + formato XXX-XXX-XXXX */}
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-bold">Teléfono de Contacto <span className="text-red-500">*</span></label>
-            <div className="flex gap-2">
-              <select className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 outline-none">
-                <option value="+52">+52</option>
-                <option value="+1">+1</option>
-                <option value="+34">+34</option>
-                <option value="+57">+57</option>
-              </select>
-              <input
-                type="text"
-                value={pasajero.telefono}
-                onChange={(e) => {
-                  // Solo permitir números y formatear
-                  let raw = e.target.value.replace(/\D/g, '');
-                  if (raw.length > 10) raw = raw.slice(0, 10);
-                  const formatted = raw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-                  handleInputChange(idx, 'telefono', formatted);
-                }}
-                placeholder="229-231-1401"
-                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
-                required
-              />
-            </div>
-          </div>
+                          {/* VALIDACIÓN TELÉFONO: Selector país + formato XXX-XXX-XXXX */}
+                          <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-bold">Teléfono de Contacto <span className="text-red-500">*</span></label>
+                            <div className="flex gap-2">
+                              <select className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 outline-none">
+                                <option value="+52">+52 México</option>
+                                <option value="+1">+1 Estados Unidos / Canadá</option>
+                                <option value="+34">+34 España</option>
+                                <option value="+57">+57 Colombia</option>
+                                <option value="+54">+54 Argentina</option>
+                                <option value="+55">+55 Brasil</option>
+                                <option value="+56">+56 Chile</option>
+                                <option value="+51">+51 Perú</option>
+                                <option value="+58">+58 Venezuela</option>
+                              </select>
+                              <input
+                                type="text"
+                                value={pasajero.telefono}
+                                onChange={(e) => {
+                                  // Solo permitir números y formatear
+                                  let raw = e.target.value.replace(/\D/g, '');
+                                  if (raw.length > 10) raw = raw.slice(0, 10);
+                                  const formatted = raw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                                  handleInputChange(idx, 'telefono', formatted);
+                                }}
+                                placeholder="XXX-XXX-XXXX"
+                                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                                required
+                              />
+                            </div>
+                          </div>
 
-          {/* Resto de campos (Fecha, Nacionalidad, INE) */}
-          <div className="space-y-1">
-             <label className="text-xs font-bold">Fecha de Nacimiento <span className="text-red-500">*</span></label>
-             <input type="date" value={pasajero.fechaNacimiento} onChange={(e) => handleInputChange(idx, 'fechaNacimiento', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-500" required />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold">Nacionalidad <span className="text-red-500">*</span></label>
-            <input type="text" value={pasajero.nacionalidad} onChange={(e) => handleInputChange(idx, 'nacionalidad', e.target.value)} placeholder="Mexicana" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
-          </div>
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-bold">Tipo de Identificación Oficial <span className="text-red-500">*</span></label>
-            <select value={pasajero.tipoIdentificacion} onChange={(e) => handleInputChange(idx, 'tipoIdentificacion', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold">
-              <option value="Credencial para votar INE/IFE">Credencial para votar INE/IFE</option>
-              <option value="Pasaporte vigente">Pasaporte vigente</option>
-              <option value="Licencia de conducir vigente">Licencia de conducir vigente</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+                          {/* Resto de campos (Fecha, Nacionalidad, INE) */}
+                          <div className="space-y-1">
+                             <label className="text-xs font-bold">Fecha de Nacimiento <span className="text-red-500">*</span></label>
+                             <input type="date" max={hoy} value={pasajero.fechaNacimiento} onChange={(e) => handleInputChange(idx, 'fechaNacimiento', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-pointer" required />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold">Nacionalidad <span className="text-red-500">*</span></label>
+                            <select value={pasajero.nacionalidad} onChange={(e) => handleInputChange(idx, 'nacionalidad', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold" required>
+                              <option value="Mexicano(a)">Mexicana</option>
+                              <option value="Extranjero(a)">Extranjero</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-bold">Tipo de Identificación Oficial <span className="text-red-500">*</span></label>
+                            <select value={pasajero.tipoIdentificacion} onChange={(e) => handleInputChange(idx, 'tipoIdentificacion', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold">
+                              <option value="Credencial para votar INE/IFE">Credencial para votar INE/IFE</option>
+                              <option value="Pasaporte vigente">Pasaporte vigente</option>
+                              <option value="Licencia de conducir vigente">Licencia de conducir vigente</option>
+                              <option value="Cartilla militar">Cartilla militar</option>
+                              <option value="Acta de nacimiento">Acta de nacimiento</option>
+                              <option value="Credencial escolar">Credencial escolar</option>
+                              <option value="Visa">Visa</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* PASO 3: METODO DE PAGO CON ENCRIPTACION */}
                 {step === 3 && (
@@ -432,7 +461,7 @@ export default function ReservarVueloWizard() {
 
                     <div className="bg-[#4d7c44]/5 border border-[#4d7c44]/20 p-4 rounded-xl flex items-center gap-3 text-xs font-bold text-[#4d7c44]">
                       <ShieldCheck className="w-5 h-5 flex-shrink-0" />
-                      <span>Tu informacion de pago esta protegida con encriptacion de 256 bits</span>
+                      <span>Tu informacion de pago esta protegida.</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
@@ -442,15 +471,15 @@ export default function ReservarVueloWizard() {
                       </div>
                       <div className="space-y-1 md:col-span-2">
                         <label className="text-xs font-bold">Nombre en la Tarjeta</label>
-                        <input type="text" placeholder="JUAN PEREZ" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none uppercase" />
+                        <input type="text" placeholder="Nombre del propietario" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none uppercase" />
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-bold">Fecha de Vencimiento</label>
                         <input type="text" placeholder="MM/AA" maxLength={5} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                       </div>
                       <div className="space-y-1">
+                        <input type="password" placeholder="•••" maxLength={3} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                         <label className="text-xs font-bold">CVV</label>
-                        <input type="password" placeholder="123" maxLength={3} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                       </div>
                     </div>
                   </div>
@@ -471,25 +500,25 @@ export default function ReservarVueloWizard() {
                 <div className="space-y-3 font-bold text-sm text-slate-500">
                   <div className="flex justify-between">
                     <span>Vuelo base ({cantidadPasajeros}x):</span>
-                    <span className="text-slate-800">${precioBaseTotal.toLocaleString()} {moneda}</span>
+                    <span className="text-slate-800">${formatCurrency(precioBaseTotal)} {moneda}</span>
                   </div>
                   {cargosExtra > 0 && (
                     <div className="flex justify-between text-[#4d7c44]">
                       <span>Cargos por Asiento Premium:</span>
-                      <span>+ ${cargosExtra.toLocaleString()} MXN</span>
+                      <span>+ ${formatCurrency(cargosExtra)} MXN</span>
                     </div>
                   )}
                   {asientosSeleccionados.length > 0 && (
                     <div className="flex justify-between text-xs text-slate-400 pt-2 border-t border-slate-100">
                       <span>Asientos ({asientosSeleccionados.join(', ')}):</span>
-                      <span className="font-black text-slate-600">$0 MXN</span>
+                      <span className="font-black text-slate-600">$0.00 MXN</span>
                     </div>
                   )}
                 </div>
 
                 <div className="flex justify-between items-end border-t border-slate-100 pt-4 mb-4">
                   <span className="text-base font-black text-slate-900">Total</span>
-                  <span className="text-2xl font-black text-[#4d7c44] tracking-tighter">${precioFinalTotal.toLocaleString()} {moneda}</span>
+                  <span className="text-2xl font-black text-[#4d7c44] tracking-tighter">${formatCurrency(precioFinalTotal)} {moneda}</span>
                 </div>
 
                 {/* ACCIONES DE CONTROL */}

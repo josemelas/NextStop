@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Plane, Calendar, MapPin, Globe, Loader2, AlertCircle, Star } from 'lucide-react';
 import { SidebarCliente, HeaderUsuario } from '@/app/components/NavCliente';
 import { vuelosService } from '@/lib/vuelosService';
-import { favoritosService } from '@/lib/favoritosService'; // NUEVO: Importación de tu servicio de favoritos
+import { favoritosService } from '@/lib/favoritosService';
 import { useRouter } from 'next/navigation';
 
 export default function BuscadorVuelosNextStop() {
@@ -13,7 +13,7 @@ export default function BuscadorVuelosNextStop() {
   // Estados para inputs y búsqueda
   const [origenQuery, setOrigenQuery] = useState('');
   const [destinoQuery, setDestinoQuery] = useState('');
-  const [origenFinal, setOrigenFinal] = useState(''); // Código IATA (ej: MEX)
+  const [origenFinal, setOrigenFinal] = useState('');
   const [destinoFinal, setDestinoFinal] = useState('');
   const [fecha, setFecha] = useState('');
 
@@ -24,10 +24,13 @@ export default function BuscadorVuelosNextStop() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // NUEVOS ESTADOS: Control de favoritos y carga asíncrona individual
+  // Estados: Control de favoritos y carga asíncrona individual
   const [favoritosIds, setFavoritosIds] = useState<string[]>([]);
   const [loadingEstrella, setLoadingEstrella] = useState<string | null>(null);
   const [usuarioId, setUsuarioId] = useState<number | null>(null);
+
+  // OBTENEMOS LA FECHA ACTUAL DEL SISTEMA (Formato YYYY-MM-DD)
+  const today = new Date().toISOString().split('T')[0];
 
   // Autocompletado para ORIGEN
   useEffect(() => {
@@ -55,7 +58,15 @@ export default function BuscadorVuelosNextStop() {
     return () => clearTimeout(delay);
   }, [destinoQuery, destinoFinal]);
 
-  // NUEVO EFFECT: Cargar información de sesión y favoritos del usuario al montar el componente
+  // EFFECT: Limpia los resultados y errores visuales si se modifica/borra el origen o destino
+  useEffect(() => {
+    if (!origenFinal || !destinoFinal) {
+      setVuelos([]);
+      setError("");
+    }
+  }, [origenFinal, destinoFinal]);
+
+  // Cargar información de sesión y favoritos del usuario al montar el componente
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userDataString = localStorage.getItem("user_data");
@@ -76,24 +87,21 @@ export default function BuscadorVuelosNextStop() {
   const cargarFavoritosIniciales = async (id: number) => {
     const favs = await favoritosService.listarFavoritos(id);
     if (Array.isArray(favs)) {
-      // Filtramos únicamente los identificadores de recurso de tipo VUELO
       const ids = favs.filter(f => f.tipo_recurso === 'VUELO').map(f => f.id_recurso);
       setFavoritosIds(ids);
     }
   };
 
-  // NUEVA FUNCIÓN: Alterna el estado de favoritos conectándose con DigitalOcean
   const handleToggleFavorito = async (vueloApiId: string) => {
     if (!usuarioId) {
       alert("Por favor, inicia sesión para poder agregar vuelos a tus favoritos.");
       return;
     }
 
-    setLoadingEstrella(vueloApiId); // Bloqueamos momentáneamente la estrella del vuelo interactuado
+    setLoadingEstrella(vueloApiId);
     const yaEsFavorito = favoritosIds.includes(vueloApiId);
 
     if (yaEsFavorito) {
-      // Si ya está guardado, llamamos al DELETE con la opción B de Brian
       const res = await favoritosService.eliminarFavorito(usuarioId, vueloApiId, 'VUELO');
       if (res.status === 200) {
         setFavoritosIds(prev => prev.filter(id => id !== vueloApiId));
@@ -101,7 +109,6 @@ export default function BuscadorVuelosNextStop() {
         alert(res.data?.error || "Ocurrió un inconveniente al remover de favoritos.");
       }
     } else {
-      // Si es nuevo, mandamos el payload al POST
       const res = await favoritosService.agregarFavorito(usuarioId, vueloApiId, 'VUELO');
       if (res.status === 201) {
         setFavoritosIds(prev => [...prev, vueloApiId]);
@@ -114,8 +121,24 @@ export default function BuscadorVuelosNextStop() {
 
   const handleBuscar = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!origenFinal || !destinoFinal || !fecha) {
-      setError("Por favor, selecciona una ciudad de la lista de sugerencias.");
+      setError("Por favor, completa el origen, destino y fecha para buscar vuelos.");
+      return;
+    }
+
+    // NUEVA VALIDACIÓN: Bloquear fechas en el pasado comparando cadenas (YYYY-MM-DD)
+    if (fecha < today) {
+      setError("No puedes buscar vuelos en fechas que ya han pasado. Selecciona una fecha válida.");
+      setVuelos([]);
+      return;
+    }
+
+    // VALIDACIÓN ESTRICTA DEL AÑO 2026 (Se mantiene lo que ya teníamos)
+    const selectedYear = new Date(fecha).getFullYear();
+    if (selectedYear !== 2026) {
+      setError("Por el momento no hay vuelos registrados para la fecha seleccionada, lo lamentamos.");
+      setVuelos([]);
       return;
     }
 
@@ -198,13 +221,17 @@ export default function BuscadorVuelosNextStop() {
               )}
             </div>
 
+            {/* FECHA */}
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Fecha</label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500" />
                 <input
-                  type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
-                  className="w-full bg-slate-50 p-4 pl-12 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                  type="date"
+                  value={fecha}
+                  min={today} // <-- ESTO BLOQUEA FECHAS PASADAS EN EL CALENDARIO
+                  onChange={(e) => setFecha(e.target.value)}
+                  className="w-full bg-slate-50 p-4 pl-12 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
                 />
               </div>
             </div>
@@ -212,7 +239,7 @@ export default function BuscadorVuelosNextStop() {
             <div className="flex items-end">
               <button
                 type="submit" disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-orange-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-orange-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Buscar Vuelos"}
               </button>
@@ -222,7 +249,7 @@ export default function BuscadorVuelosNextStop() {
           {/* MENSAJES DE ERROR */}
           {error && (
             <div className="bg-red-50 border border-red-100 p-6 rounded-[2.5rem] flex items-center gap-4 text-red-600 mb-8 animate-pulse">
-              <AlertCircle className="w-6 h-6" />
+              <AlertCircle className="w-6 h-6 flex-shrink-0" />
               <p className="font-bold">{error}</p>
             </div>
           )}
@@ -261,10 +288,7 @@ export default function BuscadorVuelosNextStop() {
                       </p>
                     </div>
 
-                    {/* BOTONES DE ACCIÓN AGRUPADOS CON LA ESTRELLA INTERACTIVA */}
                     <div className="flex items-center gap-3 w-full justify-center md:justify-end">
-
-                      {/* BOTÓN ESTRELLA DE FAVORITOS */}
                       <button
                         type="button"
                         onClick={() => handleToggleFavorito(vueloIdUnico)}
@@ -283,7 +307,6 @@ export default function BuscadorVuelosNextStop() {
                         )}
                       </button>
 
-                      {/* BOTÓN SELECCIONAR VUELO (WIZARD DE COMPRA) */}
                       <button
                         onClick={() => {
                           const datosVueloParaComprar = {
