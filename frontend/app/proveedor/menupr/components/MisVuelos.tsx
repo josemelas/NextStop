@@ -16,11 +16,54 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
     }
   }, [userInfo?.id_proveedor]);
 
-  const cargarVuelos = async () => {
+  const isPastDate = (fechaStr: string) => {
+    if (!fechaStr || fechaStr === "Sin fecha") return false;
+
+    const meses: Record<string, number> = {
+      "ene": 0, "feb": 1, "mar": 2, "abr": 3, "may": 4, "jun": 5,
+      "jul": 6, "ago": 7, "sep": 8, "oct": 9, "nov": 10, "dic": 11
+    };
+
+    try {
+      const parts = fechaStr.toLowerCase().replace(/[.,]/g, '').split(/\s+/);
+      if (parts.length >= 3) {
+        const dia = parseInt(parts[0]);
+        const mesStr = parts[1].substring(0, 3);
+        const mes = meses[mesStr];
+        const anio = parseInt(parts[2]);
+
+        if (mes !== undefined && !isNaN(dia) && !isNaN(anio)) {
+          const vueloDate = new Date(anio, mes, dia);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return vueloDate < today;
+        }
+      }
+
+      const parsed = new Date(fechaStr);
+      if (!isNaN(parsed.getTime())) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return parsed < today;
+      }
+    } catch (e) {
+      return false;
+    }
+    return false;
+  };
+
+const cargarVuelos = async () => {
     setLoading(true);
     try {
       const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/listar/?id_proveedor=${userInfo.id_proveedor}`);
-      if (res.ok) setVuelos(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        const vuelosActualizados = data.map((v: any) => ({
+          ...v,
+          disponibilidad: isPastDate(v.fecha_salida) ? "Finalizado" : v.disponibilidad
+        }));
+        setVuelos(vuelosActualizados);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -53,7 +96,13 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Mis Vuelos</h2>
           <p className="text-slate-500 font-medium mt-1">Gestiona las rutas y disponibilidad de tu catálogo.</p>
         </div>
-        <button onClick={() => setActiveItem('Agregar Vuelo')} className="bg-[#4d7c44] hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer border-none">
+        <button
+          onClick={() => {
+            localStorage.removeItem('vuelo_editar');
+            setActiveItem('Agregar Vuelo');
+          }}
+          className="bg-[#4d7c44] hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer border-none"
+        >
           <PlusCircle className="w-5 h-5" /> Agregar Nuevo Vuelo
         </button>
       </div>
@@ -67,7 +116,7 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
           <option value="Todos los Estados">Todos los Estados</option>
           <option value="Disponible">Disponible</option>
           <option value="Limitado">Limitado</option>
-          <option value="Agotado">Agotado</option>
+          <option value="Finalizado">Finalizado</option>
         </select>
       </div>
 
@@ -86,29 +135,50 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-sm font-semibold">
-              {filtrados.map((v) => (
-                <tr key={v.api_id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-4">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-900">{v.destino_completo}</span>
-                      <span className="text-xs font-bold text-slate-400">Desde {v.origen_completo}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 font-black">${v.precio.toLocaleString()}</td>
-                  <td className="p-4 text-slate-500">{v.fecha_salida}</td>
-                  <td className="p-4 text-center">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${v.disponibilidad === 'Disponible' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{v.disponibilidad}</span>
-                  </td>
-                  <td className="p-4 text-center relative" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => setMenuAbiertoId(menuAbiertoId === v.api_id ? null : v.api_id)} className="p-2 text-slate-400 hover:text-slate-900"><MoreHorizontal className="w-5 h-5" /></button>
-                    {menuAbiertoId === v.api_id && (
-                      <div className="absolute right-8 top-10 bg-white border border-slate-100 shadow-xl rounded-xl py-2 w-36 z-50">
-                        <button onClick={() => handleEliminar(v.api_id)} className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 bg-transparent border-none"><Trash2 className="w-4 h-4" /> Eliminar</button>
+              {filtrados.map((v) => {
+                // Lógica de colores optimizada sin el estado Agotado
+                let badgeColor = "bg-green-100 text-green-700";
+                if (v.disponibilidad === "Limitado") badgeColor = "bg-orange-100 text-orange-700";
+                if (v.disponibilidad === "Finalizado") badgeColor = "bg-slate-100 text-slate-500 border border-slate-200";
+
+                return (
+                  <tr key={v.api_id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900">{v.destino_completo}</span>
+                        <span className="text-xs font-bold text-slate-400">Desde {v.origen_completo}</span>
                       </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="p-4 font-black">${v.precio.toLocaleString()}</td>
+                    <td className="p-4 text-slate-500">{v.fecha_salida}</td>
+                    <td className="p-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${badgeColor}`}>
+                        {v.disponibilidad}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center relative" onClick={(e) => e.stopPropagation()}>
+                      <button onClick={() => setMenuAbiertoId(menuAbiertoId === v.api_id ? null : v.api_id)} className="p-2 text-slate-400 hover:text-slate-900 bg-transparent border-none cursor-pointer"><MoreHorizontal className="w-5 h-5" /></button>
+                      {menuAbiertoId === v.api_id && (
+                        <div className="absolute right-8 top-10 bg-white border border-slate-100 shadow-xl rounded-xl py-2 w-36 z-50">
+                          <button
+                            onClick={() => {
+                              localStorage.setItem('vuelo_editar', JSON.stringify(v));
+                              setActiveItem('Agregar Vuelo');
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 bg-transparent border-none cursor-pointer"
+                          >
+                            <Edit2 className="w-4 h-4" /> Editar
+                          </button>
+                          <button onClick={() => handleEliminar(v.api_id)} className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 bg-transparent border-none cursor-pointer"><Trash2 className="w-4 h-4" /> Eliminar</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtrados.length === 0 && (
+                <tr><td colSpan={5} className="py-8 text-center text-slate-400 font-bold">No se encontraron vuelos con esos criterios.</td></tr>
+              )}
             </tbody>
           </table>
         )}
