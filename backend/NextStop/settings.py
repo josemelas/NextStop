@@ -3,6 +3,7 @@ from pathlib import Path
 import pymysql
 from dotenv import load_dotenv
 from datetime import timedelta
+import cloudinary
 
 # Cargar variables del archivo .env
 load_dotenv()
@@ -198,6 +199,14 @@ CLOUDINARY = {
     'API_KEY': '354129292777773',
     'API_SECRET': 'NugLKRBW8U6We9EQuIcXDjuO_fk'
 }
+
 MEDIA_URL = '/media/'
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = CLOUDINARY
+
+cloudinary.config(
+    cloud_name = CLOUDINARY['CLOUD_NAME'],
+    api_key = CLOUDINARY['API_KEY'],
+    api_secret = CLOUDINARY['API_SECRET'],
+    secure = True
+)
