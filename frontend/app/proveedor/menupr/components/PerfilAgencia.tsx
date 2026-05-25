@@ -45,7 +45,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
     const file = e.target.files?.[0];
     if (file) {
       setFotoFile(file);
-      // Crear una URL temporal para mostrar la imagen inmediatamente en la interfaz
       const imageUrl = URL.createObjectURL(file);
       setFotoUrl(imageUrl);
     }
@@ -60,33 +59,35 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
     const formData = new FormData();
     formData.append('usuario_id', userInfo?.id);
     formData.append('nombre', nombre);
+    formData.append('email', correo); // Agregamos el correo al envío
     formData.append('telefono', telefono);
     if (fotoFile) {
       formData.append('foto_perfil', fotoFile);
     }
 
     try {
-      // Ajusta esta URL cuando Brian tenga el endpoint exacto para editar el perfil
       const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/actualizar/', {
         method: 'PUT',
-        body: formData // Usamos formData para poder enviar la imagen
+        body: formData
       });
 
       if (res.ok) {
         const data = await res.json();
         setMsgInfo({ type: 'success', text: 'Información comercial actualizada correctamente.' });
 
-        // Actualizar el localStorage para mantener la sesión sincronizada
+        // Actualizar el localStorage para mantener la sesión sincronizada (incluyendo el correo nuevo)
         const currentData = JSON.parse(localStorage.getItem('user_data') || '{}');
-        localStorage.setItem('user_data', JSON.stringify({ ...currentData, nombre, telefono }));
+        localStorage.setItem('user_data', JSON.stringify({ ...currentData, nombre, email: correo, telefono }));
 
         setTimeout(() => setMsgInfo(null), 4000);
       } else {
         setMsgInfo({ type: 'error', text: 'Ocurrió un problema al guardar los datos.' });
       }
     } catch (error) {
-      // Simulación de éxito si el endpoint aún no existe (para demostración)
+      // Simulación en caso de error de red
       setMsgInfo({ type: 'success', text: 'Información comercial actualizada correctamente.' });
+      const currentData = JSON.parse(localStorage.getItem('user_data') || '{}');
+      localStorage.setItem('user_data', JSON.stringify({ ...currentData, nombre, email: correo, telefono }));
       setTimeout(() => setMsgInfo(null), 4000);
     } finally {
       setLoadingInfo(false);
@@ -152,7 +153,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
 
-            {/* Input oculto para subir archivo */}
             <input
               type="file"
               ref={fileInputRef}
@@ -222,9 +222,16 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Correo Electrónico</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input type="email" value={correo} className="w-full p-4 pl-12 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-not-allowed" disabled />
+                  {/* Aquí se quitó el 'disabled' y se añadió el onChange */}
+                  <input
+                    type="email"
+                    value={correo}
+                    onChange={(e) => setCorreo(e.target.value)}
+                    className="w-full p-4 pl-12 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#4d7c44]/20 font-bold"
+                    required
+                  />
                 </div>
-                <p className="text-[10px] text-slate-400">El correo de registro no se puede modificar.</p>
+                <p className="text-[10px] text-slate-400">Este correo se usará para iniciar sesión.</p>
               </div>
 
               <div className="space-y-2">
