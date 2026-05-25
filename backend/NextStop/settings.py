@@ -30,9 +30,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
     'drf_spectacular',
+    'cloudinary_storage',
+    'django.contrib.staticfiles',
+    'cloudinary',
     'usuarios',
     'vuelos',
     'favoritos',
@@ -182,4 +184,11 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
-ALLOWED_HOSTS = ['*']
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'daz68o9tt',
+    'API_KEY': '354129292777773',
+    'API_SECRET': 'NugLKRBW8U6We9EQuIcXDjuO_fk'
+}
+MEDIA_URL = '/media/'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
