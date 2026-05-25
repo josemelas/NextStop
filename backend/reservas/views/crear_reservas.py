@@ -50,10 +50,14 @@ class CrearReserva(APIView):
                 try:
                     usuario_comprador = reserva.id_usuario
                     lista_destinatarios = [usuario_comprador.email]
+                    lista_nombres_pasajeros = [usuario_comprador.nombre]
                     for pasajero in datos_pasajeros:
                         correo_extra = pasajero.get('correo')
+                        nombre_extra = pasajero.get('nombre')
                         if correo_extra and correo_extra not in lista_destinatarios:
                             lista_destinatarios.append(correo_extra)
+                        if nombre_extra:
+                            lista_nombres_pasajeros.append(nombre_extra)
 
                     asunto_correo = f"Confirmación de tu Vuelo: {reserva.codigo_confirmacion}"
                     aeropuertos_info = {
@@ -65,6 +69,7 @@ class CrearReserva(APIView):
 
                     contexto = {
                         "nombre_usuario": usuario_comprador.nombre,
+                        "pasajeros_vuelo": lista_nombres_pasajeros, 
                         "codigo_confirmacion": reserva.codigo_confirmacion,
                         "origen_codigo": vuelo.origen,
                         "origen_nombre": nombre_origen,
