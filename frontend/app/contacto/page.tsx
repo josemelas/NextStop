@@ -33,7 +33,7 @@ export default function ContactoPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Correo Electrónico</p>
-                  <p className="font-bold text-slate-700">soporte@nextstop.com</p>
+                  <p className="font-bold text-slate-700">nextstopcompany@gmail.com</p>
                 </div>
               </div>
 
@@ -43,7 +43,7 @@ export default function ContactoPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Teléfono Directo</p>
-                  <p className="font-bold text-slate-700">+52 (229) 123-4567</p>
+                  <p className="font-bold text-slate-700">+52 (229) 231-1401</p>
                 </div>
               </div>
 

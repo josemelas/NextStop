@@ -26,17 +26,16 @@ export default function ProviderLogin() {
           email: email,
           password: password,
           recaptcha_token: "fake-token",
-          portal: "empresa" // 👈 AQUÍ ESTÁ EL CAMBIO SOLICITADO
+          portal: "empresa"
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Guardamos el token y la info
         localStorage.setItem('user_token', data.token.access);
         localStorage.setItem('user_data', JSON.stringify(data.usuario));
-        localStorage.setItem('user_portal', "empresa"); // Guardamos el portal para referencia
+        localStorage.setItem('user_portal', "empresa");
 
         router.push('/proveedor/menupr');
       } else {
@@ -50,7 +49,6 @@ export default function ProviderLogin() {
     }
   };
 
-  // ... (El resto del JSX se mantiene exactamente igual)
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <Link
@@ -97,10 +95,8 @@ export default function ProviderLogin() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-sm font-semibold text-slate-700">Contraseña</label>
-                <a href="#" className="text-sm font-medium text-stop-navy hover:underline">¿Olvidaste tu clave?</a>
-              </div>
+              {/* Etiqueta de contraseña sin el link de olvidar clave */}
+              <label className="text-sm font-semibold text-slate-700 px-1">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input

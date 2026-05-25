@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { PlaneTakeoff, LayoutDashboard, PlusCircle, FolderGit2, BarChart3, Building2, LogOut } from 'lucide-react';
+import { PlaneTakeoff, LayoutDashboard, PlusCircle, FolderGit2, Building2, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 // Importación de los nuevos componentes modulares
@@ -41,7 +41,6 @@ export default function MenuProveedor() {
     { icon: LayoutDashboard, label: 'Panel Principal' },
     { icon: PlusCircle, label: 'Agregar Vuelo' },
     { icon: FolderGit2, label: 'Mis Vuelos' },
-    { icon: BarChart3, label: 'Estadísticas' },
     { icon: Building2, label: 'Perfil de Agencia' },
   ];
 
@@ -102,21 +101,8 @@ export default function MenuProveedor() {
           {activeItem === 'Agregar Vuelo' && (
             <AgregarVuelo userInfo={userInfo} setActiveItem={setActiveItem} />
           )}
-
-          {/* AQUÍ SE RENDERIZA EL NUEVO COMPONENTE */}
           {activeItem === 'Perfil de Agencia' && (
             <PerfilAgencia userInfo={userInfo} />
-          )}
-
-          {/* Secciones secundarias en construcción (Solo quedó Estadísticas) */}
-          {activeItem === 'Estadísticas' && (
-            <div className="border-4 border-dashed border-slate-200 rounded-[2.5rem] h-[600px] flex items-center justify-center text-center p-12 bg-white">
-              <div className="flex flex-col items-center">
-                <BarChart3 className="w-20 h-20 text-slate-200 mb-6" />
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Sección {activeItem} en construcción</h3>
-                <p className="text-slate-500 max-w-sm font-medium">Aquí se mostrarán las herramientas para {activeItem.toLowerCase()}.</p>
-              </div>
-            </div>
           )}
         </div>
       </main>
