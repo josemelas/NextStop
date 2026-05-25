@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from cloudinary.models import CloudinaryField
 
 class Proveedorapi(models.Model):
     id_proveedor = models.AutoField(primary_key=True, db_column='id_proveedor')
@@ -41,7 +42,7 @@ class Usuario(models.Model):
     email_verificado = models.BooleanField(default=False)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
-    foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
+    foto_perfil = CloudinaryField('foto_perfil', null=True, blank=True)
 
     class Meta:
         managed = False
