@@ -29,17 +29,26 @@ class CrearReserva(APIView):
         try:
             with transaction.atomic():
                 vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
-                reserva_existente = Reserva.objects.filter(
-                    id_usuario_id=id_usuario,
-                    id_vuelo=vuelo,
-                    estado_pago='PAGADO'
-                ).exists()
+                from usuarios.models import Usuario
+                usuario_comprador = Usuario.objects.get(id=id_usuario)
+                nuevos_nombres = []
+                for pasajero in datos_pasajeros:
+                    nombre_extra = pasajero.get('nombre')
+                    if nombre_extra:
+                        nuevos_nombres.append(nombre_extra.strip().lower())
+                reservas_vuelo = Reserva.objects.filter(id_vuelo=vuelo, estado_pago='PAGADO')
+                nombres_ya_registrados = []
+                for r in reservas_vuelo:
+                    if r.nombres_pasajeros:
+                        nombres_limpios = [n.strip().lower() for n in r.nombres_pasajeros.split(',')]
+                        nombres_ya_registrados.extend(nombres_limpios)
 
-                if reserva_existente:
-                    return Response(
-                        {"error": "Ya tienes una reserva activa para este vuelo. No puedes comprarlo dos veces."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+                for nombre in nuevos_nombres:
+                    if nombre in nombres_ya_registrados:
+                        return Response(
+                            {"error": f"El pasajero '{nombre.title()}' ya tiene un boleto comprado para este vuelo."},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
                 if vuelo.asientos_disponibles < pasajeros:
                     return Response({"error": "El vuelo ya no tiene suficientes asientos disponibles"},
                                     status=status.HTTP_400_BAD_REQUEST)
@@ -48,6 +57,7 @@ class CrearReserva(APIView):
                 vuelo.save()
 
                 codigo_reserva = f"NS-{uuid.uuid4().hex[:6].upper()}"
+                nombres_a_guardar = ", ".join([n.title() for n in nuevos_nombres])
 
                 reserva = Reserva.objects.create(
                     id_usuario_id=id_usuario,
@@ -56,7 +66,8 @@ class CrearReserva(APIView):
                     monto_total=monto,
                     estado_pago='PAGADO',
                     cantidad_pasajeros=pasajeros,
-                    asiento_asignado=asientos
+                    asiento_asignado=asientos,
+                    nombres_pasajeros=nombres_a_guardar
                 )
                 try:
                     Favorito.objects.filter(
@@ -66,8 +77,6 @@ class CrearReserva(APIView):
                     ).delete()
                 except Exception as e:
                     print(f"Nota: Fallo silencioso al borrar favorito: {str(e)}")
-                # ----------------------------------------
-
                 try:
                     usuario_comprador = reserva.id_usuario
                     pasajeros_a_notificar = []

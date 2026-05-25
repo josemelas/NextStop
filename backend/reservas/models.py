@@ -24,10 +24,12 @@ class Reserva(models.Model):
     )
     cantidad_pasajeros = models.IntegerField(default=1)
     asiento_asignado = models.CharField(max_length=10, null=True, blank=True)
+    nombres_pasajeros = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'reserva'
         managed = False
+
 
     def __str__(self):
         return (
