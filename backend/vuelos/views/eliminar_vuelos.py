@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from vuelos.models import Vuelo
 from usuarios.models import Usuario
+from vuelos.models import Proveedorapi
 
 class EliminarVuelo(APIView):
     def delete(self, request):
@@ -13,25 +14,25 @@ class EliminarVuelo(APIView):
             return Response({"error": "Faltan parámetros (vuelo_id o usuario_id)"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usuario = Usuario.objects.get(id=id_usuario)
-            proveedor_del_usuario = usuario.id_proveedor
-
-            if not proveedor_del_usuario:
-                return Response({"error": "Acceso denegado: Tu cuenta no es de empresa"}, status=status.HTTP_403_FORBIDDEN)
+            usuario_logueado = Usuario.objects.get(id=id_usuario)
+            try:
+                perfil_proveedor = Proveedorapi.objects.get(usuario=usuario_logueado)
+            except Proveedorapi.DoesNotExist:
+                return Response({"error": "Este usuario no es una aerolínea autorizada."},
+                                status=status.HTTP_403_FORBIDDEN)
 
             vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
 
-            if vuelo.id_proveedor != proveedor_del_usuario:
-                return Response({"error": "Operación rechazada: No puedes borrar vuelos de la competencia"}, status=status.HTTP_403_FORBIDDEN)
+            if vuelo.id_proveedor != perfil_proveedor:
+                return Response({"error": "Operación rechazada: No puedes borrar vuelos de la competencia"},
+                                status=status.HTTP_403_FORBIDDEN)
 
-            codigo_borrado = vuelo.codigo_vuelo
             vuelo.delete()
-
-            return Response({"mensaje": f"El vuelo {codigo_borrado} ha sido retirado del catálogo exitosamente."}, status=status.HTTP_200_OK)
+            return Response({"mensaje": "Vuelo eliminado exitosamente"}, status=status.HTTP_200_OK)
 
         except Usuario.DoesNotExist:
-            return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "El usuario no existe"}, status=status.HTTP_404_NOT_FOUND)
         except Vuelo.DoesNotExist:
-            return Response({"error": "El vuelo especificado no existe o ya fue borrado"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "El vuelo no existe o ya fue eliminado"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({"error": f"Error interno del servidor: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": f"Error interno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
