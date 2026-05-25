@@ -21,7 +21,7 @@ class ModificarVuelos(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usuario = Usuario.objects.get(id_usuario=id_usuario)
+            usuario = Usuario.objects.get(id=id_usuario)
             proveedor_del_usuario = usuario.id_proveedor
 
             if not proveedor_del_usuario:
