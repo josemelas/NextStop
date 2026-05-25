@@ -16,18 +16,15 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
     }
   }, [userInfo?.id_proveedor]);
 
-  // Función para evaluar si la fecha del vuelo ya pasó respecto a hoy
   const isPastDate = (fechaStr: string) => {
     if (!fechaStr || fechaStr === "Sin fecha") return false;
 
-    // Diccionario para interpretar los meses en español que envía Django
     const meses: Record<string, number> = {
       "ene": 0, "feb": 1, "mar": 2, "abr": 3, "may": 4, "jun": 5,
       "jul": 6, "ago": 7, "sep": 8, "oct": 9, "nov": 10, "dic": 11
     };
 
     try {
-      // Limpiamos la fecha (ej. "15 Mar, 2026" -> ["15", "mar", "2026"])
       const parts = fechaStr.toLowerCase().replace(/[.,]/g, '').split(/\s+/);
       if (parts.length >= 3) {
         const dia = parseInt(parts[0]);
@@ -38,12 +35,11 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
         if (mes !== undefined && !isNaN(dia) && !isNaN(anio)) {
           const vueloDate = new Date(anio, mes, dia);
           const today = new Date();
-          today.setHours(0, 0, 0, 0); // Ignoramos la hora, solo comparamos el día
+          today.setHours(0, 0, 0, 0);
           return vueloDate < today;
         }
       }
 
-      // Fallback por si la fecha viene en un formato estándar distinto
       const parsed = new Date(fechaStr);
       if (!isNaN(parsed.getTime())) {
         const today = new Date();
@@ -62,7 +58,6 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
       const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/listar/?id_proveedor=${userInfo.id_proveedor}`);
       if (res.ok) {
         const data = await res.json();
-        // Recorremos los vuelos y actualizamos el estado si la fecha ya expiró
         const vuelosActualizados = data.map((v: any) => ({
           ...v,
           disponibilidad: isPastDate(v.fecha_salida) ? "Finalizado" : v.disponibilidad
@@ -101,7 +96,13 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Mis Vuelos</h2>
           <p className="text-slate-500 font-medium mt-1">Gestiona las rutas y disponibilidad de tu catálogo.</p>
         </div>
-        <button onClick={() => setActiveItem('Agregar Vuelo')} className="bg-[#4d7c44] hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer border-none">
+        <button
+          onClick={() => {
+            localStorage.removeItem('vuelo_editar'); // Limpiamos para asegurar que sea "Crear"
+            setActiveItem('Agregar Vuelo');
+          }}
+          className="bg-[#4d7c44] hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer border-none"
+        >
           <PlusCircle className="w-5 h-5" /> Agregar Nuevo Vuelo
         </button>
       </div>
@@ -116,7 +117,7 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
           <option value="Disponible">Disponible</option>
           <option value="Limitado">Limitado</option>
           <option value="Agotado">Agotado</option>
-          <option value="Finalizado">Finalizado</option> {/* <- Agregado para filtrar por finalizados */}
+          <option value="Finalizado">Finalizado</option>
         </select>
       </div>
 
@@ -136,7 +137,6 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
             </thead>
             <tbody className="divide-y divide-slate-50 text-sm font-semibold">
               {filtrados.map((v) => {
-                // Lógica de colores del badge incluyendo el Finalizado
                 let badgeColor = "bg-green-100 text-green-700";
                 if (v.disponibilidad === "Limitado") badgeColor = "bg-orange-100 text-orange-700";
                 if (v.disponibilidad === "Agotado") badgeColor = "bg-red-100 text-red-700";
@@ -161,6 +161,18 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
                       <button onClick={() => setMenuAbiertoId(menuAbiertoId === v.api_id ? null : v.api_id)} className="p-2 text-slate-400 hover:text-slate-900 bg-transparent border-none cursor-pointer"><MoreHorizontal className="w-5 h-5" /></button>
                       {menuAbiertoId === v.api_id && (
                         <div className="absolute right-8 top-10 bg-white border border-slate-100 shadow-xl rounded-xl py-2 w-36 z-50">
+
+                          {/* BOTÓN EDITAR */}
+                          <button
+                            onClick={() => {
+                              localStorage.setItem('vuelo_editar', JSON.stringify(v));
+                              setActiveItem('Agregar Vuelo');
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 bg-transparent border-none cursor-pointer"
+                          >
+                            <Edit2 className="w-4 h-4" /> Editar
+                          </button>
+
                           <button onClick={() => handleEliminar(v.api_id)} className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 bg-transparent border-none cursor-pointer"><Trash2 className="w-4 h-4" /> Eliminar</button>
                         </div>
                       )}
