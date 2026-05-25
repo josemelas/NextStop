@@ -1,12 +1,16 @@
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from vuelos.models import Vuelo
 from usuarios.models import Usuario
-import datetime
+from datetime import datetime
 from django.utils.timezone import make_aware
 
+
 class ModificarVuelos(APIView):
+    permission_classes = [AllowAny]
+
     def put(self, request):
         api_id_vuelo = request.data.get('vuelo_id')
         id_usuario = request.data.get('usuario_id')
@@ -22,14 +26,15 @@ class ModificarVuelos(APIView):
 
         try:
             usuario = Usuario.objects.get(id=id_usuario)
-            proveedor_del_usuario = usuario.id_proveedor
 
-            if not proveedor_del_usuario:
+            id_proveedor_usuario = usuario.id_proveedor_id
+
+            if not id_proveedor_usuario:
                 return Response({"error": "Acceso denegado: Tu cuenta no es de empresa"},
                                 status=status.HTTP_403_FORBIDDEN)
-
             vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
-            if vuelo.id_proveedor != proveedor_del_usuario:
+            id_proveedor_vuelo = vuelo.id_proveedor_id
+            if str(id_proveedor_vuelo) != str(id_proveedor_usuario):
                 return Response({"error": "Operación rechazada: No puedes modificar vuelos de otra aerolínea"},
                                 status=status.HTTP_403_FORBIDDEN)
 
