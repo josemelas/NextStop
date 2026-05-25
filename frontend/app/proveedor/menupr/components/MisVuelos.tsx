@@ -52,7 +52,7 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
     return false;
   };
 
-  const cargarVuelos = async () => {
+const cargarVuelos = async () => {
     setLoading(true);
     try {
       const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/listar/?id_proveedor=${userInfo.id_proveedor}`);
@@ -66,9 +66,9 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
       }
     } catch (error) {
       console.error(error);
-    } fillly(() => {
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   const handleEliminar = async (apiId: string) => {
