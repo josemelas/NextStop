@@ -29,6 +29,12 @@ export default function ReservarVueloWizard() {
   const [cargosExtra, setCargosExtra] = useState(0);
   const [datosPasajeros, setDatosPasajeros] = useState<any[]>([]);
 
+  // Estados para el formato de Pago
+  const [tarjetaNum, setTarjetaNum] = useState("");
+  const [tarjetaNombre, setTarjetaNombre] = useState("");
+  const [tarjetaVence, setTarjetaVence] = useState("");
+  const [tarjetaCvv, setTarjetaCvv] = useState("");
+
   const [loadingCompra, setLoadingCompra] = useState(false);
   const [compraExitosa, setCompraExitosa] = useState(false);
 
@@ -128,7 +134,41 @@ export default function ReservarVueloWizard() {
     return true;
   };
 
+  // --- LÓGICA DE FORMATO PARA EL MÉTODO DE PAGO ---
+  const handleFormatoTarjeta = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Quitar todo lo que no sea número
+    let raw = e.target.value.replace(/\D/g, '');
+    // Limitar a 16 dígitos
+    if (raw.length > 16) raw = raw.slice(0, 16);
+    // Agregar el guion cada 4 dígitos
+    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1-');
+    setTarjetaNum(formatted);
+  };
+
+  const handleFormatoVencimiento = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, '');
+    if (raw.length > 4) raw = raw.slice(0, 4);
+    // Agregar la diagonal automáticamente después del mes
+    if (raw.length >= 3) {
+      setTarjetaVence(`${raw.slice(0, 2)}/${raw.slice(2)}`);
+    } else {
+      setTarjetaVence(raw);
+    }
+  };
+
+  const handleFormatoCvv = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, '');
+    if (raw.length > 4) raw = raw.slice(0, 4);
+    setTarjetaCvv(raw);
+  };
+
   const ejecutarCompraRealBackend = async () => {
+    // Validación rápida de que llenó la tarjeta
+    if (tarjetaNum.length < 19 || tarjetaVence.length < 5 || tarjetaCvv.length < 3 || !tarjetaNombre) {
+      setErrorBackend("Por favor completa correctamente los datos de tu tarjeta.");
+      return;
+    }
+
     setLoadingCompra(true);
     setErrorBackend("");
 
@@ -144,9 +184,6 @@ export default function ReservarVueloWizard() {
       }
     }
 
-    // ----------------------------------------------------------------------
-    // AJUSTE PARA CUMPLIR CON LA REGLA DEL FRONTEND QUE PIDIÓ BRIAN
-    // ----------------------------------------------------------------------
     const arrayCorreosPasajeros = datosPasajeros.map(pasajero => ({
       nombre: `${pasajero.nombres} ${pasajero.apellidos}`.trim(),
       correo: pasajero.correo
@@ -158,7 +195,7 @@ export default function ReservarVueloWizard() {
       cantidad_pasajeros: cantidadPasajeros,
       asientos: asientosSeleccionados.join(', '),
       monto_total: precioFinalTotal,
-      datos_pasajeros: arrayCorreosPasajeros // <-- AQUÍ ENVIAMOS EL ARREGLO PARA EL CORREO
+      datos_pasajeros: arrayCorreosPasajeros
     };
 
     const res = await reservasService.crearReserva(payloadReserva);
@@ -244,7 +281,6 @@ export default function ReservarVueloWizard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               <div className="lg:col-span-2 space-y-8">
 
-                {/* ALERTA VISUAL DE CAMPOS VACÍOS */}
                 {errorValidacion && (
                   <div className="bg-amber-50 border border-amber-200 text-amber-800 font-bold text-sm p-5 rounded-3xl flex items-center gap-3 shadow-sm animate-pulse">
                     <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
@@ -375,7 +411,6 @@ export default function ReservarVueloWizard() {
                         <p className="text-xs font-black text-[#4d7c44] uppercase tracking-wider">Viajero {idx + 1} — Asiento Asignado: {asientosSeleccionados[idx] || "N/A"}</p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
-                          {/* Nombre y Apellido sin cambios especiales */}
                           <div className="space-y-1">
                             <label className="text-xs font-bold">Nombre(s) <span className="text-red-500">*</span></label>
                             <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Nombre del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
@@ -385,7 +420,6 @@ export default function ReservarVueloWizard() {
                             <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Apellidos del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
                           </div>
 
-                          {/* VALIDACIÓN CORREO: Sin espacios ni mayúsculas */}
                           <div className="space-y-1 md:col-span-2">
                             <label className="text-xs font-bold">Correo Electrónico <span className="text-red-500">*</span></label>
                             <input
@@ -401,7 +435,6 @@ export default function ReservarVueloWizard() {
                             />
                           </div>
 
-                          {/* VALIDACIÓN TELÉFONO: Selector país + formato XXX-XXX-XXXX */}
                           <div className="space-y-1 md:col-span-2">
                             <label className="text-xs font-bold">Teléfono de Contacto <span className="text-red-500">*</span></label>
                             <div className="flex gap-2">
@@ -420,7 +453,6 @@ export default function ReservarVueloWizard() {
                                 type="text"
                                 value={pasajero.telefono}
                                 onChange={(e) => {
-                                  // Solo permitir números y formatear
                                   let raw = e.target.value.replace(/\D/g, '');
                                   if (raw.length > 10) raw = raw.slice(0, 10);
                                   const formatted = raw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
@@ -433,7 +465,6 @@ export default function ReservarVueloWizard() {
                             </div>
                           </div>
 
-                          {/* Resto de campos (Fecha, Nacionalidad, INE) */}
                           <div className="space-y-1">
                              <label className="text-xs font-bold">Fecha de Nacimiento <span className="text-red-500">*</span></label>
                              <input type="date" max={hoy} value={pasajero.fechaNacimiento} onChange={(e) => handleInputChange(idx, 'fechaNacimiento', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-pointer" required />
@@ -463,7 +494,7 @@ export default function ReservarVueloWizard() {
                   </div>
                 )}
 
-                {/* PASO 3: METODO DE PAGO CON ENCRIPTACION */}
+                {/* PASO 3: METODO DE PAGO CON ENCRIPTACION Y FORMATO */}
                 {step === 3 && (
                   <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
                     <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">Metodo de Pago</h3>
@@ -475,20 +506,45 @@ export default function ReservarVueloWizard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
                       <div className="space-y-1 md:col-span-2">
-                        <label className="text-xs font-bold">Numero de Tarjeta</label>
-                        <input type="text" placeholder="1234 5678 9012 3456" maxLength={19} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+                        <label className="text-xs font-bold">Número de Tarjeta</label>
+                        <input
+                          type="text"
+                          value={tarjetaNum}
+                          onChange={handleFormatoTarjeta}
+                          placeholder="1234-5678-9012-3456"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                        />
                       </div>
                       <div className="space-y-1 md:col-span-2">
                         <label className="text-xs font-bold">Nombre en la Tarjeta</label>
-                        <input type="text" placeholder="Nombre del propietario" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none uppercase" />
+                        <input
+                          type="text"
+                          value={tarjetaNombre}
+                          onChange={(e) => setTarjetaNombre(e.target.value.toUpperCase())}
+                          placeholder="NOMBRE DEL PROPIETARIO"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none uppercase"
+                        />
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-bold">Fecha de Vencimiento</label>
-                        <input type="text" placeholder="MM/AA" maxLength={5} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+                        <input
+                          type="text"
+                          value={tarjetaVence}
+                          onChange={handleFormatoVencimiento}
+                          placeholder="MM/AA"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                        />
                       </div>
+                      {/* El CVV ahora tiene la etiqueta arriba, alineándose con la fecha */}
                       <div className="space-y-1">
-                        <input type="password" placeholder="•••" maxLength={3} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
                         <label className="text-xs font-bold">CVV</label>
+                        <input
+                          type="password"
+                          value={tarjetaCvv}
+                          onChange={handleFormatoCvv}
+                          placeholder="•••"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                        />
                       </div>
                     </div>
                   </div>
