@@ -144,12 +144,21 @@ export default function ReservarVueloWizard() {
       }
     }
 
+    // ----------------------------------------------------------------------
+    // AJUSTE PARA CUMPLIR CON LA REGLA DEL FRONTEND QUE PIDIÓ BRIAN
+    // ----------------------------------------------------------------------
+    const arrayCorreosPasajeros = datosPasajeros.map(pasajero => ({
+      nombre: `${pasajero.nombres} ${pasajero.apellidos}`.trim(),
+      correo: pasajero.correo
+    }));
+
     const payloadReserva = {
       vuelo_id: vuelo.api_id || vuelo.id || "API-MOCK-ID",
       usuario_id: usuarioIdReal,
       cantidad_pasajeros: cantidadPasajeros,
       asientos: asientosSeleccionados.join(', '),
-      monto_total: precioFinalTotal
+      monto_total: precioFinalTotal,
+      datos_pasajeros: arrayCorreosPasajeros // <-- AQUÍ ENVIAMOS EL ARREGLO PARA EL CORREO
     };
 
     const res = await reservasService.crearReserva(payloadReserva);
