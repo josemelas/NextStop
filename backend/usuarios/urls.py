@@ -8,6 +8,7 @@ from .views.view_editarperfil import EditarPerfil
 from .views.gestionar_usuarios import GestionUsuariosAdminView
 from .views.panel_admin import EstadisticasDashboard
 from .views.panel_proveedor import DashboardProveedor
+from .views.contacto_view import EnviarMensajeContacto
 
 urlpatterns = [
     path('registrar/', RegistrarUsuario.as_view(), name='registrar_usuario'),
@@ -22,4 +23,5 @@ urlpatterns = [
     path('admin/gestion/',GestionUsuariosAdminView.as_view(), name='gestion_admin'),
     path('admin/dashboard/', EstadisticasDashboard.as_view(), name='admin_dashboard'),
     path('proveedor/dashboard/', DashboardProveedor.as_view(), name='proveedor_dashboard'),
+    path('contacto/', EnviarMensajeContacto.as_view(), name='enviar_mensaje_contacto'),
 ]
