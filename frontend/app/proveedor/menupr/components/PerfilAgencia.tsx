@@ -30,12 +30,16 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
   // Cargar datos iniciales
   useEffect(() => {
     if (userInfo) {
-      setNombre(userInfo.nombres || userInfo.nombre || "");
+      setNombre(userInfo.nombre || userInfo.nombres || "");
       setCorreo(userInfo.email || "");
       setTelefono(userInfo.telefono || "");
 
       if (userInfo.foto_perfil) {
-        setFotoUrl(`https://seal-app-u4egd.ondigitalocean.app${userInfo.foto_perfil}`);
+        // Aseguramos que la URL sea absoluta si viene relativa desde Django
+        const urlBase = userInfo.foto_perfil.startsWith('http')
+          ? ''
+          : 'https://seal-app-u4egd.ondigitalocean.app';
+        setFotoUrl(`${urlBase}${userInfo.foto_perfil}`);
       }
     }
   }, [userInfo]);
@@ -50,45 +54,61 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
     }
   };
 
-  // --- LÓGICA DE ACTUALIZACIÓN DE DATOS ---
+  // --- LÓGICA DE ACTUALIZACIÓN DE DATOS COMERCIALES ---
   const handleInfoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingInfo(true);
     setMsgInfo(null);
 
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+      setMsgInfo({ type: 'error', text: 'Sesión expirada. Por favor, inicia sesión nuevamente.' });
+      setLoadingInfo(false);
+      return;
+    }
+
+    // Usamos FormData porque podríamos estar enviando un archivo de imagen
     const formData = new FormData();
-    formData.append('usuario_id', userInfo?.id);
     formData.append('nombre', nombre);
-    formData.append('email', correo); // Agregamos el correo al envío
+    formData.append('email', correo);
     formData.append('telefono', telefono);
+
+    // Coincide con request.FILES['foto'] del backend de Brian
     if (fotoFile) {
-      formData.append('foto_perfil', fotoFile);
+      formData.append('foto', fotoFile);
     }
 
     try {
-      const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/actualizar/', {
-        method: 'PUT',
+      const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/editar/', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // No ponemos Content-Type, el navegador lo calcula automáticamente para FormData
+        },
         body: formData
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
         setMsgInfo({ type: 'success', text: 'Información comercial actualizada correctamente.' });
 
-        // Actualizar el localStorage para mantener la sesión sincronizada (incluyendo el correo nuevo)
-        const currentData = JSON.parse(localStorage.getItem('user_data') || '{}');
-        localStorage.setItem('user_data', JSON.stringify({ ...currentData, nombre, email: correo, telefono }));
+        // Sincronizamos el LocalStorage con los datos exactos que nos regresa el backend
+        if (data.usuario) {
+           localStorage.setItem('user_data', JSON.stringify(data.usuario));
+
+           if (data.usuario.foto_perfil) {
+             const urlBase = data.usuario.foto_perfil.startsWith('http') ? '' : 'https://seal-app-u4egd.ondigitalocean.app';
+             setFotoUrl(`${urlBase}${data.usuario.foto_perfil}`);
+           }
+        }
 
         setTimeout(() => setMsgInfo(null), 4000);
       } else {
-        setMsgInfo({ type: 'error', text: 'Ocurrió un problema al guardar los datos.' });
+        setMsgInfo({ type: 'error', text: data.detail || 'Ocurrió un problema al guardar los datos.' });
       }
     } catch (error) {
-      // Simulación en caso de error de red
-      setMsgInfo({ type: 'success', text: 'Información comercial actualizada correctamente.' });
-      const currentData = JSON.parse(localStorage.getItem('user_data') || '{}');
-      localStorage.setItem('user_data', JSON.stringify({ ...currentData, nombre, email: correo, telefono }));
-      setTimeout(() => setMsgInfo(null), 4000);
+      setMsgInfo({ type: 'error', text: 'No se pudo conectar con el servidor.' });
     } finally {
       setLoadingInfo(false);
     }
@@ -109,16 +129,25 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
       return;
     }
 
+    const token = localStorage.getItem('user_token');
+    if (!token) {
+      setMsgPwd({ type: 'error', text: 'Sesión expirada. Por favor, inicia sesión nuevamente.' });
+      return;
+    }
+
     setLoadingPwd(true);
 
     try {
-      const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/cambiar_password/', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/usuarios/editar/', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
-          usuario_id: userInfo?.id,
-          password_actual: passwordActual,
-          nuevo_password: nuevaPassword
+          password_actual: passwordActual, // Según la estructura compartida por tu compañero
+          nueva_password: nuevaPassword,   // Según la imagen de instrucciones
+          password: nuevaPassword          // Según el código python (data.get('password'))
         })
       });
 
@@ -131,7 +160,7 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
         setConfirmarPassword("");
         setTimeout(() => setMsgPwd(null), 4000);
       } else {
-        setMsgPwd({ type: 'error', text: data.error || 'La contraseña actual no es correcta.' });
+        setMsgPwd({ type: 'error', text: data.detail || 'Error al cambiar la contraseña.' });
       }
     } catch (error) {
       setMsgPwd({ type: 'error', text: 'Error de conexión con el servidor.' });
@@ -222,7 +251,6 @@ export default function PerfilAgencia({ userInfo }: { userInfo: any }) {
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Correo Electrónico</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  {/* Aquí se quitó el 'disabled' y se añadió el onChange */}
                   <input
                     type="email"
                     value={correo}

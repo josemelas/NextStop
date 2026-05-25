@@ -73,7 +73,7 @@ export default function Home() {
             </li>
           </ul>
           <Link href="/proveedor/login" className="flex items-center justify-between bg-slate-900 text-white px-8 py-5 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all shadow-lg group">
-            Entrar al Panel <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            Acceder como proveedor <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
