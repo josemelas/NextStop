@@ -26,6 +26,7 @@ export default function ReservarVueloWizard() {
 
   const [cantidadPasajeros, setCantidadPasajeros] = useState(1);
   const [asientosSeleccionados, setAsientosSeleccionados] = useState<string[]>([]);
+  const [asientosOcupadosBackend, setAsientosOcupadosBackend] = useState<string[]>([]);
   const [cargosExtra, setCargosExtra] = useState(0);
   const [datosPasajeros, setDatosPasajeros] = useState<any[]>([]);
 
@@ -48,7 +49,21 @@ export default function ReservarVueloWizard() {
     const vueloGuardado = localStorage.getItem('vuelo_seleccionado');
     if (vueloGuardado) {
       try {
-        setVuelo(JSON.parse(vueloGuardado));
+        const parsedVuelo = JSON.parse(vueloGuardado);
+        setVuelo(parsedVuelo);
+
+        // --- FETCH DE ASIENTOS REALES AL BACKEND ---
+        const vueloId = parsedVuelo.api_id || parsedVuelo.id;
+        if (vueloId) {
+          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/verificar/${vueloId}/`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.asientos_ocupados) {
+                setAsientosOcupadosBackend(data.asientos_ocupados);
+              }
+            })
+            .catch(err => console.error("Error al obtener asientos ocupados:", err));
+        }
       } catch (e) {
         console.error("Error al parsear el vuelo:", e);
       }
@@ -98,9 +113,41 @@ export default function ReservarVueloWizard() {
     setCargosExtra(0);
   };
 
+  // --- LÓGICA DE CÁLCULO DE EDAD ---
+  const calcularEdad = (fechaNac: string) => {
+    if (!fechaNac) return 18;
+    const fechaActual = new Date();
+    const cumple = new Date(fechaNac);
+    let edad = fechaActual.getFullYear() - cumple.getFullYear();
+    const mes = fechaActual.getMonth() - cumple.getMonth();
+    if (mes < 0 || (mes === 0 && fechaActual.getDate() < cumple.getDate())) {
+      edad--;
+    }
+    return edad;
+  };
+
   const handleInputChange = (idx: number, campo: string, valor: string) => {
     const nuevosDatos = [...datosPasajeros];
     nuevosDatos[idx][campo] = valor;
+
+    // --- REGLA DE NEGOCIO: IDENTIFICACIÓN PARA MENORES ---
+    if (campo === 'fechaNacimiento') {
+      const edad = calcularEdad(valor);
+      const esMenor = edad < 18;
+
+      if (esMenor) {
+        const validasMenor = ["Pasaporte vigente", "Acta de nacimiento", "Credencial escolar"];
+        if (!validasMenor.includes(nuevosDatos[idx].tipoIdentificacion)) {
+          nuevosDatos[idx].tipoIdentificacion = "Acta de nacimiento";
+        }
+      } else {
+        const validasMayor = ["Credencial para votar INE/IFE", "Pasaporte vigente", "Licencia de conducir vigente", "Cartilla militar", "Acta de nacimiento", "Credencial escolar", "Visa"];
+        if (!validasMayor.includes(nuevosDatos[idx].tipoIdentificacion)) {
+          nuevosDatos[idx].tipoIdentificacion = "Credencial para votar INE/IFE";
+        }
+      }
+    }
+
     setDatosPasajeros(nuevosDatos);
     if (errorValidacion) setErrorValidacion("");
   };
@@ -136,11 +183,8 @@ export default function ReservarVueloWizard() {
 
   // --- LÓGICA DE FORMATO PARA EL MÉTODO DE PAGO ---
   const handleFormatoTarjeta = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Quitar todo lo que no sea número
     let raw = e.target.value.replace(/\D/g, '');
-    // Limitar a 16 dígitos
     if (raw.length > 16) raw = raw.slice(0, 16);
-    // Agregar el guion cada 4 dígitos
     const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1-');
     setTarjetaNum(formatted);
   };
@@ -148,7 +192,6 @@ export default function ReservarVueloWizard() {
   const handleFormatoVencimiento = (e: React.ChangeEvent<HTMLInputElement>) => {
     let raw = e.target.value.replace(/\D/g, '');
     if (raw.length > 4) raw = raw.slice(0, 4);
-    // Agregar la diagonal automáticamente después del mes
     if (raw.length >= 3) {
       setTarjetaVence(`${raw.slice(0, 2)}/${raw.slice(2)}`);
     } else {
@@ -163,7 +206,6 @@ export default function ReservarVueloWizard() {
   };
 
   const ejecutarCompraRealBackend = async () => {
-    // Validación rápida de que llenó la tarjeta
     if (tarjetaNum.length < 19 || tarjetaVence.length < 5 || tarjetaCvv.length < 3 || !tarjetaNombre) {
       setErrorBackend("Por favor completa correctamente los datos de tu tarjeta.");
       return;
@@ -316,7 +358,7 @@ export default function ReservarVueloWizard() {
                   <p className="text-xs font-black text-slate-400 uppercase italic text-right">{fechaMostrar}</p>
                 </div>
 
-                {/* PASO 1: MAPA DE ASIENTOS */}
+                {/* PASO 1: MAPA DE ASIENTOS CON ESTADO REAL DE LA BASE DE DATOS */}
                 {step === 1 && (
                   <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
                     <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl">
@@ -363,37 +405,51 @@ export default function ReservarVueloWizard() {
                       <div className="space-y-3 w-full max-w-md">
                         {FILAS_AVION.map((fila) => (
                           <div key={fila.numero} className="flex items-center justify-between gap-2">
+
+                            {/* BLOQUE IZQUIERDO */}
                             <div className="flex gap-2 flex-1 justify-end">
                               {fila.asientos.slice(0,3).map((asiento) => {
+                                // Combinar estado local estático con estado del servidor
+                                const esOcupadoBackend = asientosOcupadosBackend.includes(asiento.id);
+                                const tipoReal = esOcupadoBackend ? 'OCUPADO' : asiento.tipo;
                                 const esSeleccionado = asientosSeleccionados.includes(asiento.id);
+
                                 let claseColor = "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700";
-                                if (asiento.tipo === 'OCUPADO') claseColor = "bg-[#1e293b] text-white cursor-not-allowed";
-                                if (asiento.tipo === 'PREMIUM') claseColor = "bg-green-100 hover:bg-green-200 border border-green-300 text-green-700";
+                                if (tipoReal === 'OCUPADO') claseColor = "bg-[#1e293b] text-white cursor-not-allowed opacity-80";
+                                if (tipoReal === 'PREMIUM') claseColor = "bg-green-100 hover:bg-green-200 border border-green-300 text-green-700";
                                 if (esSeleccionado) claseColor = "bg-[#4d7c44] text-white border-[#4d7c44]";
 
                                 return (
-                                  <button key={asiento.id} type="button" onClick={() => toggleAsiento(asiento.id || '', asiento.tipo || '')} className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${claseColor}`}>
+                                  <button key={asiento.id} type="button" onClick={() => toggleAsiento(asiento.id || '', tipoReal || '')} className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${claseColor}`}>
                                     {asiento.id}
                                   </button>
                                 );
                               })}
                             </div>
+
                             <div className="w-8 text-center text-xs font-black text-slate-300">{fila.numero}</div>
+
+                            {/* BLOQUE DERECHO */}
                             <div className="flex gap-2 flex-1 justify-start">
                               {fila.asientos.slice(3,6).map((asiento) => {
+                                // Combinar estado local estático con estado del servidor
+                                const esOcupadoBackend = asientosOcupadosBackend.includes(asiento.id);
+                                const tipoReal = esOcupadoBackend ? 'OCUPADO' : asiento.tipo;
                                 const esSeleccionado = asientosSeleccionados.includes(asiento.id);
+
                                 let claseColor = "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700";
-                                if (asiento.tipo === 'OCUPADO') claseColor = "bg-[#1e293b] text-white cursor-not-allowed";
-                                if (asiento.tipo === 'PREMIUM') claseColor = "bg-green-100 hover:bg-green-200 border border-green-300 text-green-700";
+                                if (tipoReal === 'OCUPADO') claseColor = "bg-[#1e293b] text-white cursor-not-allowed opacity-80";
+                                if (tipoReal === 'PREMIUM') claseColor = "bg-green-100 hover:bg-green-200 border border-green-300 text-green-700";
                                 if (esSeleccionado) claseColor = "bg-[#4d7c44] text-white border-[#4d7c44]";
 
                                 return (
-                                  <button key={asiento.id} type="button" onClick={() => toggleAsiento(asiento.id || '', asiento.tipo || '')} className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${claseColor}`}>
+                                  <button key={asiento.id} type="button" onClick={() => toggleAsiento(asiento.id || '', tipoReal || '')} className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${claseColor}`}>
                                     {asiento.id}
                                   </button>
                                 );
                               })}
                             </div>
+
                           </div>
                         ))}
                       </div>
@@ -401,96 +457,116 @@ export default function ReservarVueloWizard() {
                   </div>
                 )}
 
-                {/* PASO 2: FORMULARIO DETALLADO DE PASAJEROS */}
+                {/* PASO 2: FORMULARIO DETALLADO DE PASAJEROS CON REGLAS DE EDAD */}
                 {step === 2 && (
                   <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
                     <h3 className="font-black text-lg text-slate-900 uppercase tracking-tight">Datos del Pasajero</h3>
 
-                    {datosPasajeros.map((pasajero, idx) => (
-                      <div key={idx} className="space-y-4 pb-6 border-b border-slate-100 last:border-none">
-                        <p className="text-xs font-black text-[#4d7c44] uppercase tracking-wider">Viajero {idx + 1} — Asiento Asignado: {asientosSeleccionados[idx] || "N/A"}</p>
+                    {datosPasajeros.map((pasajero, idx) => {
+                      const edadPasajero = calcularEdad(pasajero.fechaNacimiento);
+                      const esMenorDeEdad = edadPasajero < 18;
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold">Nombre(s) <span className="text-red-500">*</span></label>
-                            <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Nombre del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold">Apellidos <span className="text-red-500">*</span></label>
-                            <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Apellidos del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
-                          </div>
+                      return (
+                        <div key={idx} className="space-y-4 pb-6 border-b border-slate-100 last:border-none">
+                          <p className="text-xs font-black text-[#4d7c44] uppercase tracking-wider">Viajero {idx + 1} — Asiento Asignado: {asientosSeleccionados[idx] || "N/A"}</p>
 
-                          <div className="space-y-1 md:col-span-2">
-                            <label className="text-xs font-bold">Correo Electrónico <span className="text-red-500">*</span></label>
-                            <input
-                              type="email"
-                              value={pasajero.correo}
-                              onChange={(e) => {
-                                const val = e.target.value.toLowerCase().replace(/\s/g, '');
-                                handleInputChange(idx, 'correo', val);
-                              }}
-                              placeholder="mi@correo.com"
-                              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none lowercase"
-                              required
-                            />
-                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-semibold text-sm text-slate-700">
+                            <div className="space-y-1">
+                              <label className="text-xs font-bold">Nombre(s) <span className="text-red-500">*</span></label>
+                              <input type="text" value={pasajero.nombres} onChange={(e) => handleInputChange(idx, 'nombres', e.target.value)} placeholder="Nombre del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-bold">Apellidos <span className="text-red-500">*</span></label>
+                              <input type="text" value={pasajero.apellidos} onChange={(e) => handleInputChange(idx, 'apellidos', e.target.value)} placeholder="Apellidos del pasajero" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                            </div>
 
-                          <div className="space-y-1 md:col-span-2">
-                            <label className="text-xs font-bold">Teléfono de Contacto <span className="text-red-500">*</span></label>
-                            <div className="flex gap-2">
-                              <select className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 outline-none">
-                                <option value="+52">+52 México</option>
-                                <option value="+1">+1 Estados Unidos / Canadá</option>
-                                <option value="+34">+34 España</option>
-                                <option value="+57">+57 Colombia</option>
-                                <option value="+54">+54 Argentina</option>
-                                <option value="+55">+55 Brasil</option>
-                                <option value="+56">+56 Chile</option>
-                                <option value="+51">+51 Perú</option>
-                                <option value="+58">+58 Venezuela</option>
-                              </select>
+                            <div className="space-y-1 md:col-span-2">
+                              <label className="text-xs font-bold">Correo Electrónico <span className="text-red-500">*</span></label>
                               <input
-                                type="text"
-                                value={pasajero.telefono}
+                                type="email"
+                                value={pasajero.correo}
                                 onChange={(e) => {
-                                  let raw = e.target.value.replace(/\D/g, '');
-                                  if (raw.length > 10) raw = raw.slice(0, 10);
-                                  const formatted = raw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-                                  handleInputChange(idx, 'telefono', formatted);
+                                  const val = e.target.value.toLowerCase().replace(/\s/g, '');
+                                  handleInputChange(idx, 'correo', val);
                                 }}
-                                placeholder="XXX-XXX-XXXX"
-                                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                                placeholder="mi@correo.com"
+                                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none lowercase"
                                 required
                               />
                             </div>
-                          </div>
 
-                          <div className="space-y-1">
-                             <label className="text-xs font-bold">Fecha de Nacimiento <span className="text-red-500">*</span></label>
-                             <input type="date" max={hoy} value={pasajero.fechaNacimiento} onChange={(e) => handleInputChange(idx, 'fechaNacimiento', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-pointer" required />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold">Nacionalidad <span className="text-red-500">*</span></label>
-                            <select value={pasajero.nacionalidad} onChange={(e) => handleInputChange(idx, 'nacionalidad', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold" required>
-                              <option value="Mexicano(a)">Mexicana</option>
-                              <option value="Extranjero(a)">Extranjero</option>
-                            </select>
-                          </div>
-                          <div className="space-y-1 md:col-span-2">
-                            <label className="text-xs font-bold">Tipo de Identificación Oficial <span className="text-red-500">*</span></label>
-                            <select value={pasajero.tipoIdentificacion} onChange={(e) => handleInputChange(idx, 'tipoIdentificacion', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold">
-                              <option value="Credencial para votar INE/IFE">Credencial para votar INE/IFE</option>
-                              <option value="Pasaporte vigente">Pasaporte vigente</option>
-                              <option value="Licencia de conducir vigente">Licencia de conducir vigente</option>
-                              <option value="Cartilla militar">Cartilla militar</option>
-                              <option value="Acta de nacimiento">Acta de nacimiento</option>
-                              <option value="Credencial escolar">Credencial escolar</option>
-                              <option value="Visa">Visa</option>
-                            </select>
+                            <div className="space-y-1 md:col-span-2">
+                              <label className="text-xs font-bold">Teléfono de Contacto <span className="text-red-500">*</span></label>
+                              <div className="flex gap-2">
+                                <select className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 outline-none">
+                                  <option value="+52">+52 México</option>
+                                  <option value="+1">+1 Estados Unidos / Canadá</option>
+                                  <option value="+34">+34 España</option>
+                                  <option value="+57">+57 Colombia</option>
+                                  <option value="+54">+54 Argentina</option>
+                                  <option value="+55">+55 Brasil</option>
+                                  <option value="+56">+56 Chile</option>
+                                  <option value="+51">+51 Perú</option>
+                                  <option value="+58">+58 Venezuela</option>
+                                </select>
+                                <input
+                                  type="text"
+                                  value={pasajero.telefono}
+                                  onChange={(e) => {
+                                    let raw = e.target.value.replace(/\D/g, '');
+                                    if (raw.length > 10) raw = raw.slice(0, 10);
+                                    const formatted = raw.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                                    handleInputChange(idx, 'telefono', formatted);
+                                  }}
+                                  placeholder="XXX-XXX-XXXX"
+                                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                                  required
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-xs font-bold">Fecha de Nacimiento <span className="text-red-500">*</span></label>
+                              <input type="date" max={hoy} value={pasajero.fechaNacimiento} onChange={(e) => handleInputChange(idx, 'fechaNacimiento', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-500 cursor-pointer" required />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-bold">Nacionalidad <span className="text-red-500">*</span></label>
+                              <select value={pasajero.nacionalidad} onChange={(e) => handleInputChange(idx, 'nacionalidad', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold" required>
+                                <option value="Mexicano(a)">Mexicana</option>
+                                <option value="Extranjero(a)">Extranjero</option>
+                              </select>
+                            </div>
+
+                            {/* IDENTIFICACIÓN DEPENDIENTE DE LA EDAD */}
+                            <div className="space-y-1 md:col-span-2">
+                              <label className="text-xs font-bold">Tipo de Identificación Oficial <span className="text-red-500">*</span></label>
+                              <select value={pasajero.tipoIdentificacion} onChange={(e) => handleInputChange(idx, 'tipoIdentificacion', e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none cursor-pointer text-slate-700 font-semibold">
+                                {esMenorDeEdad ? (
+                                  <>
+                                    <option value="Pasaporte vigente">Pasaporte vigente</option>
+                                    <option value="Acta de nacimiento">Acta de nacimiento</option>
+                                    <option value="Credencial escolar">Credencial escolar</option>
+                                  </>
+                                ) : (
+                                  <>
+                                    <option value="Credencial para votar INE/IFE">Credencial para votar INE/IFE</option>
+                                    <option value="Pasaporte vigente">Pasaporte vigente</option>
+                                    <option value="Licencia de conducir vigente">Licencia de conducir vigente</option>
+                                    <option value="Cartilla militar">Cartilla militar</option>
+                                    <option value="Acta de nacimiento">Acta de nacimiento</option>
+                                    <option value="Credencial escolar">Credencial escolar</option>
+                                    <option value="Visa">Visa</option>
+                                  </>
+                                )}
+                              </select>
+                              {esMenorDeEdad && pasajero.fechaNacimiento && (
+                                <p className="text-[10px] font-bold text-orange-500 mt-1">El pasajero es menor de edad. Solo se aceptan identificaciones vigentes para menores.</p>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
@@ -535,7 +611,6 @@ export default function ReservarVueloWizard() {
                           className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
                         />
                       </div>
-                      {/* El CVV ahora tiene la etiqueta arriba, alineándose con la fecha */}
                       <div className="space-y-1">
                         <label className="text-xs font-bold">CVV</label>
                         <input
@@ -551,7 +626,7 @@ export default function ReservarVueloWizard() {
                 )}
               </div>
 
-              {/* BARRA LATERAL DERECHA: RESUMEN DE COMPRA COMPARTIDO */}
+              {/* BARRA LATERAL DERECHA: RESUMEN DE COMPRA COMPARTIDO (MÁS LIMPIO) */}
               <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl space-y-6">
                 <div className="font-bold text-xs text-slate-400 space-y-1 border-b border-slate-100 pb-3">
                   <div className="flex justify-between text-sm font-black text-slate-900 mb-2">
@@ -571,12 +646,6 @@ export default function ReservarVueloWizard() {
                     <div className="flex justify-between text-[#4d7c44]">
                       <span>Cargos por Asiento Premium:</span>
                       <span>+ ${formatCurrency(cargosExtra)} MXN</span>
-                    </div>
-                  )}
-                  {asientosSeleccionados.length > 0 && (
-                    <div className="flex justify-between text-xs text-slate-400 pt-2 border-t border-slate-100">
-                      <span>Asientos ({asientosSeleccionados.join(', ')}):</span>
-                      <span className="font-black text-slate-600">$0.00 MXN</span>
                     </div>
                   )}
                 </div>
