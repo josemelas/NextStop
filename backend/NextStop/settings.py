@@ -134,17 +134,19 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # CORS y CSRF
 # ==========================
 CORS_ALLOWED_ORIGINS = [
-    "https://seal-app-u4egd.ondigitalocean.app",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    'seal-app-u4egd.ondigitalocean.app',
+    'nextstop-app-u9cvd.ondigitalocean.app',
+    'localhost',
+    '127.0.0.1',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://seal-app-u4egd.ondigitalocean.app",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    'seal-app-u4egd.ondigitalocean.app',
+    'nextstop-app-u9cvd.ondigitalocean.app',
+    'localhost',
+    '127.0.0.1',
 ]
 
 # ==========================
