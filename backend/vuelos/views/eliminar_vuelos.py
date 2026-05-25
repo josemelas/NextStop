@@ -6,11 +6,11 @@ from usuarios.models import Usuario
 
 class EliminarVuelo(APIView):
     def delete(self, request):
-        api_id_vuelo = request.query_params.get('vuelo_id')
-        id_usuario = request.query_params.get('usuario_id')
+        api_id_vuelo = request.query_params.get('id_vuelo')
+        id_usuario = request.query_params.get('id_usuario')
 
         if not api_id_vuelo or not id_usuario:
-            return Response({"error": "Faltan parámetros (vuelo_id o usuario_id)"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Faltan parámetros (id_vuelo o id_usuario)"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             usuario = Usuario.objects.get(id_usuario=id_usuario)
