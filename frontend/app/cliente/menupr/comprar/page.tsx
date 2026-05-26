@@ -7,16 +7,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reservasService } from '@/lib/reservasService';
 
+// EL AVIÓN AHORA EMPIEZA LIMPIO. SOLO DISPONIBLES Y PREMIUMS.
+// LOS OCUPADOS LOS DICTARÁ LA BASE DE DATOS.
 const FILAS_AVION = [
-  { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'OCUPADO' }, { id: '1D', tipo: 'OCUPADO' }, { id: '1E', tipo: 'OCUPADO' }, { id: '1F', tipo: 'PREMIUM' }] },
-  { numero: 2, asientos: [{ id: '2A', tipo: 'OCUPADO' }, { id: '2B', tipo: 'OCUPADO' }, { id: '2C', tipo: 'PREMIUM' }, { id: '2D', tipo: 'PREMIUM' }, { id: '2E', tipo: 'OCUPADO' }, { id: '2F', tipo: 'PREMIUM' }] },
-  { numero: 3, asientos: [{ id: '3A', tipo: 'OCUPADO' }, { id: '3B', tipo: 'PREMIUM' }, { id: '3C', tipo: 'PREMIUM' }, { id: '3D', tipo: 'PREMIUM' }, { id: '3E', tipo: 'PREMIUM' }, { id: '3F', tipo: 'PREMIUM' }] },
-  { numero: 4, asientos: [{ id: '4A', tipo: 'OCUPADO' }, { id: '4B', tipo: 'OCUPADO' }, { id: '4C', tipo: 'PREMIUM' }, { id: '4D', tipo: 'PREMIUM' }, { id: '4E', tipo: 'OCUPADO' }, { id: '4F', tipo: 'PREMIUM' }] },
-  { numero: 5, asientos: [{ id: '5A', tipo: 'PREMIUM' }, { id: '5B', tipo: 'PREMIUM' }, { id: '5C', tipo: 'PREMIUM' }, { id: '5D', tipo: 'PREMIUM' }, { id: '5E', tipo: 'PREMIUM' }, { id: '5F', tipo: 'OCUPADO' }] },
-  { numero: 6, asientos: [{ id: '6A', tipo: 'OCUPADO' }, { id: '6B', tipo: 'DISPONIBLE' }, { id: '6C', tipo: 'OCUPADO' }, { id: '6D', tipo: 'DISPONIBLE' }, { id: '6E', tipo: 'DISPONIBLE' }, { id: '6F', tipo: 'DISPONIBLE' }] },
-  { numero: 7, asientos: [{ id: '7A', tipo: 'OCUPADO' }, { id: '7B', tipo: 'OCUPADO' }, { id: '7C', tipo: 'DISPONIBLE' }, { id: '7D', tipo: 'OCUPADO' }, { id: '7E', tipo: 'DISPONIBLE' }, { id: '7F', tipo: 'DISPONIBLE' }] },
-  { numero: 8, asientos: [{ id: '8A', tipo: 'DISPONIBLE' }, { id: '8B', tipo: 'DISPONIBLE' }, { id: '8C', tipo: 'DISPONIBLE' }, { id: '8D', tipo: 'DISPONIBLE' }, { id: '8E', tipo: 'DISPONIBLE' }, { id: '8F', tipo: 'OCUPADO' }] },
-  { numero: 9, asientos: [{ id: '9A', tipo: 'DISPONIBLE' }, { id: '9B', tipo: 'DISPONIBLE' }, { id: '9C', tipo: 'DISPONIBLE' }, { id: '9D', tipo: 'OCUPADO' }, { id: '9E', tipo: 'OCUPADO' }, { id: '9F', tipo: 'DISPONIBLE' }] },
+  { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'PREMIUM' }, { id: '1D', tipo: 'PREMIUM' }, { id: '1E', tipo: 'PREMIUM' }, { id: '1F', tipo: 'PREMIUM' }] },
+  { numero: 2, asientos: [{ id: '2A', tipo: 'PREMIUM' }, { id: '2B', tipo: 'PREMIUM' }, { id: '2C', tipo: 'PREMIUM' }, { id: '2D', tipo: 'PREMIUM' }, { id: '2E', tipo: 'PREMIUM' }, { id: '2F', tipo: 'PREMIUM' }] },
+  { numero: 3, asientos: [{ id: '3A', tipo: 'PREMIUM' }, { id: '3B', tipo: 'PREMIUM' }, { id: '3C', tipo: 'PREMIUM' }, { id: '3D', tipo: 'PREMIUM' }, { id: '3E', tipo: 'PREMIUM' }, { id: '3F', tipo: 'PREMIUM' }] },
+  { numero: 4, asientos: [{ id: '4A', tipo: 'DISPONIBLE' }, { id: '4B', tipo: 'DISPONIBLE' }, { id: '4C', tipo: 'DISPONIBLE' }, { id: '4D', tipo: 'DISPONIBLE' }, { id: '4E', tipo: 'DISPONIBLE' }, { id: '4F', tipo: 'DISPONIBLE' }] },
+  { numero: 5, asientos: [{ id: '5A', tipo: 'DISPONIBLE' }, { id: '5B', tipo: 'DISPONIBLE' }, { id: '5C', tipo: 'DISPONIBLE' }, { id: '5D', tipo: 'DISPONIBLE' }, { id: '5E', tipo: 'DISPONIBLE' }, { id: '5F', tipo: 'DISPONIBLE' }] },
+  { numero: 6, asientos: [{ id: '6A', tipo: 'DISPONIBLE' }, { id: '6B', tipo: 'DISPONIBLE' }, { id: '6C', tipo: 'DISPONIBLE' }, { id: '6D', tipo: 'DISPONIBLE' }, { id: '6E', tipo: 'DISPONIBLE' }, { id: '6F', tipo: 'DISPONIBLE' }] },
+  { numero: 7, asientos: [{ id: '7A', tipo: 'DISPONIBLE' }, { id: '7B', tipo: 'DISPONIBLE' }, { id: '7C', tipo: 'DISPONIBLE' }, { id: '7D', tipo: 'DISPONIBLE' }, { id: '7E', tipo: 'DISPONIBLE' }, { id: '7F', tipo: 'DISPONIBLE' }] },
+  { numero: 8, asientos: [{ id: '8A', tipo: 'DISPONIBLE' }, { id: '8B', tipo: 'DISPONIBLE' }, { id: '8C', tipo: 'DISPONIBLE' }, { id: '8D', tipo: 'DISPONIBLE' }, { id: '8E', tipo: 'DISPONIBLE' }, { id: '8F', tipo: 'DISPONIBLE' }] },
+  { numero: 9, asientos: [{ id: '9A', tipo: 'DISPONIBLE' }, { id: '9B', tipo: 'DISPONIBLE' }, { id: '9C', tipo: 'DISPONIBLE' }, { id: '9D', tipo: 'DISPONIBLE' }, { id: '9E', tipo: 'DISPONIBLE' }, { id: '9F', tipo: 'DISPONIBLE' }] },
 ];
 
 export default function ReservarVueloWizard() {
@@ -55,8 +57,7 @@ export default function ReservarVueloWizard() {
         // --- FETCH DE ASIENTOS REALES AL BACKEND ---
         const vueloId = parsedVuelo.api_id || parsedVuelo.id;
         if (vueloId) {
-          // URL nueva corregida por Brian
-            fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/verificar/?vuelo_id=${vueloId}`)
+          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/verificar/${vueloId}/`)
             .then(res => res.json())
             .then(data => {
               if (data.asientos_ocupados) {
