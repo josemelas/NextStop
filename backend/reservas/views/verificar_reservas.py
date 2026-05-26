@@ -8,9 +8,7 @@ from reservas.models import Reserva
 
 class ObtenerAsientosOcupados(APIView):
     permission_classes = [AllowAny]
-    def get(self, request):
-        api_id_vuelo = request.query_params.get('vuelo_id')
-
+    def get(self, request,api_id_vuelo):
         if not api_id_vuelo:
             return Response({"error": "Falta el parámetro vuelo_id"}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -29,7 +27,8 @@ class ObtenerAsientosOcupados(APIView):
 
             return Response({
                 "vuelo_id": api_id_vuelo,
-                "asientos_ocupados": asientos_ocupados
+                "asientos_ocupados": asientos_ocupados,
+                "occupiedSeats": asientos_ocupados
             })
 
         except Vuelo.DoesNotExist:
