@@ -7,7 +7,6 @@ from vuelos.models import Vuelo, Proveedorapi
 from reservas.models import Reserva
 from apis_externas.models import Aeropuertos
 
-
 class DashboardProveedor(APIView):
     permission_classes = [AllowAny]
 
@@ -68,13 +67,15 @@ class DashboardProveedor(APIView):
         for v in vuelos_recientes_query:
             codigo = v.destino
             nombre_destino = info_aero_recientes.get(codigo, codigo) if codigo else "Sin destino"
+
+            estado_real = getattr(v, 'estado_vuelo', 'A Tiempo').upper()
+
             vuelos_recientes_list.append({
                 "destino": nombre_destino,
                 "aerolinea": agencia.nombre,
                 "precio": float(v.precio_base) if hasattr(v, 'precio_base') and v.precio_base else 0.0,
-                "fecha": v.fecha_salida.strftime('%d %b, %Y') if hasattr(v,
-                                                                         'fecha_salida') and v.fecha_salida else "Sin fecha",
-                "estado": "Programado"
+                "fecha": v.fecha_salida.strftime('%d %b, %Y') if hasattr(v,'fecha_salida') and v.fecha_salida else "Sin fecha",
+                "estado": estado_real
             })
 
         destinos_populares = (
