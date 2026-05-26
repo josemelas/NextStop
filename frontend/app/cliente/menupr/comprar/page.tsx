@@ -55,7 +55,8 @@ export default function ReservarVueloWizard() {
         // --- FETCH DE ASIENTOS REALES AL BACKEND ---
         const vueloId = parsedVuelo.api_id || parsedVuelo.id;
         if (vueloId) {
-          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/verificar/${vueloId}/`)
+          // URL nueva corregida por Brian
+            fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/verificar/?vuelo_id=${vueloId}`)
             .then(res => res.json())
             .then(data => {
               if (data.asientos_ocupados) {
