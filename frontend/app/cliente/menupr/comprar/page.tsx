@@ -7,8 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reservasService } from '@/lib/reservasService';
 
-// EL AVIÓN AHORA EMPIEZA LIMPIO. SOLO DISPONIBLES Y PREMIUMS.
-// LOS OCUPADOS LOS DICTARÁ LA BASE DE DATOS.
+// EL AVIÓN EMPIEZA LIMPIO. LOS OCUPADOS LOS DICTARÁ LA BASE DE DATOS.
 const FILAS_AVION = [
   { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'PREMIUM' }, { id: '1D', tipo: 'PREMIUM' }, { id: '1E', tipo: 'PREMIUM' }, { id: '1F', tipo: 'PREMIUM' }] },
   { numero: 2, asientos: [{ id: '2A', tipo: 'PREMIUM' }, { id: '2B', tipo: 'PREMIUM' }, { id: '2C', tipo: 'PREMIUM' }, { id: '2D', tipo: 'PREMIUM' }, { id: '2E', tipo: 'PREMIUM' }, { id: '2F', tipo: 'PREMIUM' }] },
@@ -47,20 +46,25 @@ export default function ReservarVueloWizard() {
 
   const hoy = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
+useEffect(() => {
     const vueloGuardado = localStorage.getItem('vuelo_seleccionado');
     if (vueloGuardado) {
       try {
         const parsedVuelo = JSON.parse(vueloGuardado);
         setVuelo(parsedVuelo);
 
-        // --- FETCH DE ASIENTOS REALES AL BACKEND ---
+        // --- FETCH DE ASIENTOS REALES AL BACKEND CON LA RUTA LIMPIA ---
         const vueloId = parsedVuelo.api_id || parsedVuelo.id;
         if (vueloId) {
-          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/verificar/${vueloId}/`)
-            .then(res => res.json())
+          // AQUÍ ESTÁ LA CORRECCIÓN EXACTA QUE PIDIÓ BRIAN (Sin el "?vuelo_id="):
+          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/verificar/${vueloId}/`)
+            .then(res => {
+              if (!res.ok) throw new Error("Error en la respuesta del servidor");
+              return res.json();
+            })
             .then(data => {
-              if (data.asientos_ocupados) {
+              // Si el backend nos responde con el arreglo, lo guardamos en el estado
+              if (data.asientos_ocupados && Array.isArray(data.asientos_ocupados)) {
                 setAsientosOcupadosBackend(data.asientos_ocupados);
               }
             })
