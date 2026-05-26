@@ -1,6 +1,6 @@
 from django.urls import path
-from vuelos.views.vuelos_views import GeneradorVuelos
-from .views.buscar_lugares import BuscarUbicaciones
+from vuelos.views.GeneradorVuelos import GeneradorVuelos
+from .views.BuscarLugares import BuscarUbicaciones
 
 urlpatterns = [
     path('vuelos/', GeneradorVuelos.as_view(), name='api_vuelos'),

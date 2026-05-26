@@ -1,9 +1,9 @@
 from django.urls import path
-from .views.vuelos_views import GeneradorVuelos
-from .views.listar_vuelos import ListarVuelos
-from .views.eliminar_vuelos import EliminarVuelo
-from .views.modificar_vuelos import ModificarVuelos
-from .views.crear_vuelo import CrearVueloProveedor
+from .views.GeneradorVuelos import GeneradorVuelos
+from .views.ListarVuelosProveedor import ListarVuelos
+from .views.EliminarVuelos import EliminarVuelo
+from .views.ModificarVuelos import ModificarVuelos
+from .views.CrearVuelo import CrearVueloProveedor
 from .views.ListarVuelosAdmin import ListarVuelosAdmin
 from.views.ActualizarEstadoVuelo import ActualizarEstadoVuelo
 

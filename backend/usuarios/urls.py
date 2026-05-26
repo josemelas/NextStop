@@ -1,14 +1,14 @@
 from django.urls import path
-from .views.view_registrar import RegistrarUsuario, RegistrarEmpresa
-from .views.view_verificar import VerificacionCorreo, VerificarLink, ReenviarVerificacion
-from .views.view_login import LoginUsuario
+from .views.Registrar import RegistrarUsuario, RegistrarEmpresa
+from .views.Verificacion import VerificacionCorreo, VerificarLink, ReenviarVerificacion
+from .views.Login import LoginUsuario
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views.validartoken_view import ValidarTokenView
-from .views.view_editarperfil import EditarPerfil
-from .views.gestionar_usuarios import GestionUsuariosAdminView
-from .views.panel_admin import EstadisticasDashboard
-from .views.panel_proveedor import DashboardProveedor
-from .views.contacto_view import EnviarMensajeContacto
+from .views.ValidarToken import ValidarTokenView
+from .views.EditarPerfil import EditarPerfil
+from .views.GestionarUsuarios import GestionUsuariosAdminView
+from .views.PanelAdmin import EstadisticasDashboard
+from .views.PanelProveedor import DashboardProveedor
+from .views.EnvioContacto import EnviarMensajeContacto
 
 urlpatterns = [
     path('registrar/', RegistrarUsuario.as_view(), name='registrar_usuario'),

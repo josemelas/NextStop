@@ -1,7 +1,7 @@
 from django.urls import path
-from favoritos.views.favoritear import AgregarFavorito
-from favoritos.views.listar_favoritos import ListarFavoritos
-from favoritos.views.eliminar_favoritos import EliminarFavorito
+from favoritos.views.Favoritear import AgregarFavorito
+from favoritos.views.ListarFavoritos import ListarFavoritos
+from favoritos.views.EliminarFavoritos import EliminarFavorito
 
 urlpatterns = [
     path('favoritosa/agregar/', AgregarFavorito.as_view(), name='crear_favoritos'),
