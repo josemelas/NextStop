@@ -17,8 +17,8 @@ class ObtenerAsientosOcupados(APIView):
             vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
             asientos_ocupados = []
 
-            if vuelo.asientos_ocupados_base:
-                lista_fantasmas = [a.strip() for a in vuelo.asientos_ocupados_base.split(',')]
+            if vuelo.asientos_ocupados:
+                lista_fantasmas = [a.strip() for a in vuelo.asientos_ocupados.split(',')]
                 asientos_ocupados.extend(lista_fantasmas)
 
             reservas = Reserva.objects.filter(id_vuelo=vuelo, estado_pago='PAGADO')
