@@ -6,5 +6,5 @@ from reservas.views.verificar_reservas import ObtenerAsientosOcupados
 urlpatterns = [
     path('crear/', CrearReserva.as_view(), name='crear_reserva'),
     path('listar/', ListarReservas.as_view(), name='listar_reservas_usuario'),
-    path('verificar/', ObtenerAsientosOcupados.as_view(), name='obtener_asientos_ocupados'),
+    path('verificar/<str:api_id_vuelo>/', ObtenerAsientosOcupados.as_view(), name='asientos_ocupados'),
 ]
