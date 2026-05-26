@@ -1,12 +1,13 @@
 // frontend/lib/reservasService.ts
 export const reservasService = {
-  // Función de compra que ya tenías configurada
+
   async crearReserva(payload: {
     vuelo_id: string;
     usuario_id: number;
     cantidad_pasajeros: number;
     asientos: string;
     monto_total: number;
+    datos_pasajeros?: any[]; // Agregado para soportar el arreglo de correos
   }) {
     try {
       const response = await fetch('https://seal-app-u4egd.ondigitalocean.app/api/reservas/crear/', {
@@ -18,11 +19,10 @@ export const reservasService = {
       return { status: response.status, data };
     } catch (error) {
       console.error("Error en reservasService.crearReserva:", error);
-      return { status: 500, data: { error: "No se pudo conectar con el servidor de NextStop." } };
+      return { status: 500, data: { error: "No se pudo conectar con el servidor." } };
     }
   },
 
-  // NUEVA FUNCIÓN: Trae el historial real del usuario desde Django
   async listarReservas(usuarioId: number) {
     try {
       const response = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/listar/?usuario_id=${usuarioId}`, {
@@ -34,6 +34,21 @@ export const reservasService = {
     } catch (error) {
       console.error("Error en reservasService.listarReservas:", error);
       return { status: 500, data: [] };
+    }
+  },
+
+  // NUEVA FUNCIÓN: Verificar asientos (Cumpliendo el estándar de ruta limpia)
+  async verificarAsientos(vueloId: string) {
+    try {
+      const response = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/verificar/${vueloId}/`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      return { status: response.status, data };
+    } catch (error) {
+      console.error("Error en reservasService.verificarAsientos:", error);
+      return { status: 500, data: { asientos_ocupados: [] } };
     }
   }
 };
