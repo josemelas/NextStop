@@ -54,7 +54,8 @@ class ListarVuelos(APIView):
                 "precio": float(v.precio_base) if v.precio_base else 0.0,
                 "fecha_salida": fecha_formateada,
                 "disponibilidad": estado_disponibilidad,
-                "asientos_restantes": v.asientos_disponibles
+                "asientos_restantes": v.asientos_disponibles,
+                "estado_vuelo": getattr(v, 'estado_vuelo', 'A Tiempo')
             })
 
         return Response(lista_vuelos_tabla, status=status.HTTP_200_OK)
