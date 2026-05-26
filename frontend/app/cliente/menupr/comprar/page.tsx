@@ -7,8 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reservasService } from '@/lib/reservasService';
 
-// EL AVIÓN AHORA EMPIEZA LIMPIO. SOLO DISPONIBLES Y PREMIUMS.
-// LOS OCUPADOS LOS DICTARÁ LA BASE DE DATOS.
+// EL AVIÓN EMPIEZA LIMPIO. LOS OCUPADOS LOS DICTARÁ LA BASE DE DATOS.
 const FILAS_AVION = [
   { numero: 1, asientos: [{ id: '1A', tipo: 'PREMIUM' }, { id: '1B', tipo: 'PREMIUM' }, { id: '1C', tipo: 'PREMIUM' }, { id: '1D', tipo: 'PREMIUM' }, { id: '1E', tipo: 'PREMIUM' }, { id: '1F', tipo: 'PREMIUM' }] },
   { numero: 2, asientos: [{ id: '2A', tipo: 'PREMIUM' }, { id: '2B', tipo: 'PREMIUM' }, { id: '2C', tipo: 'PREMIUM' }, { id: '2D', tipo: 'PREMIUM' }, { id: '2E', tipo: 'PREMIUM' }, { id: '2F', tipo: 'PREMIUM' }] },
@@ -54,10 +53,10 @@ export default function ReservarVueloWizard() {
         const parsedVuelo = JSON.parse(vueloGuardado);
         setVuelo(parsedVuelo);
 
-        // --- FETCH DE ASIENTOS REALES AL BACKEND ---
+        // --- FETCH DE ASIENTOS REALES AL BACKEND CON LA NUEVA RUTA ---
         const vueloId = parsedVuelo.api_id || parsedVuelo.id;
         if (vueloId) {
-          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/verificar/${vueloId}/`)
+          fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/verificar/${vueloId}/`)
             .then(res => res.json())
             .then(data => {
               if (data.asientos_ocupados) {
