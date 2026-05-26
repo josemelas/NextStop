@@ -29,6 +29,7 @@ class DashboardProveedor(APIView):
                 {"error": "La empresa o agencia especificada no existe."},
                 status=status.HTTP_404_NOT_FOUND
             )
+
         vuelos_agencia = Vuelo.objects.filter(id_proveedor=agencia)
 
         if anio:
@@ -40,7 +41,17 @@ class DashboardProveedor(APIView):
 
         vuelos_activos = vuelos_agencia.count()
         total_reservas = reservas_agencia.count()
-        ingresos_totales = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
+
+        ingresos_reales = reservas_agencia.aggregate(total=Sum('monto_total'))['total'] or 0
+
+        ingresos_fantasmas = 0
+        for v in vuelos_agencia:
+            if hasattr(v, 'asientos_ocupados') and v.asientos_ocupados:
+                cantidad_fantasmas = len([a for a in v.asientos_ocupados.split(',') if a.strip()])
+                ingresos_fantasmas += (cantidad_fantasmas * v.precio_base)
+
+        ingresos_totales_combinados = float(ingresos_reales) + float(ingresos_fantasmas)
+
         visitas_perfil = 1428
 
         vuelos_recientes_query = vuelos_agencia.order_by('-id_vuelo')[:5]
@@ -96,7 +107,7 @@ class DashboardProveedor(APIView):
             "kpis": {
                 "vuelos_activos": vuelos_activos,
                 "total_reservas": total_reservas,
-                "ingresos": float(ingresos_totales),
+                "ingresos": ingresos_totales_combinados,
                 "visitas": visitas_perfil
             },
             "vuelos_recientes": vuelos_recientes_list,
