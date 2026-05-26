@@ -6,6 +6,9 @@ from usuarios.models import Usuario
 from vuelos.models import Proveedorapi
 from reservas.models import Reserva
 
+# 👇 1. IMPORTA TU MODELO DE FAVORITOS AQUÍ
+from favoritos.models import Favorito
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -42,7 +45,7 @@ class EliminarVuelo(APIView):
             reservas_afectadas = Reserva.objects.filter(id_vuelo=vuelo, estado_pago='PAGADO')
 
             if reservas_afectadas.exists():
-                asunto_cancelacion = f"🚨 NOTIFICACIÓN URGENTE: Cancelación de tu vuelo {vuelo.codigo_vuelo}"
+                asunto_cancelacion = f"NOTIFICACIÓN URGENTE: Cancelación de tu vuelo {vuelo.codigo_vuelo}"
 
                 for reserva in reservas_afectadas:
                     try:
@@ -71,6 +74,15 @@ class EliminarVuelo(APIView):
                         )
                     except Exception as single_mail_error:
                         print(f"No se pudo notificar a {reserva.id_usuario.email}: {str(single_mail_error)}")
+
+            try:
+                Favorito.objects.filter(
+                    tipo_recurso='VUELO',
+                    id_recurso=vuelo_id
+                ).delete()
+                print(f"[SUCCESS] Se limpiaron los favoritos huérfanos del vuelo {vuelo_id}")
+            except Exception as f_error:
+                print(f"Nota: Fallo silencioso al limpiar favoritos: {str(f_error)}")
 
             vuelo.delete()
 
