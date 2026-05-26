@@ -46,20 +46,25 @@ export default function ReservarVueloWizard() {
 
   const hoy = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
+useEffect(() => {
     const vueloGuardado = localStorage.getItem('vuelo_seleccionado');
     if (vueloGuardado) {
       try {
         const parsedVuelo = JSON.parse(vueloGuardado);
         setVuelo(parsedVuelo);
 
-        // --- FETCH DE ASIENTOS REALES AL BACKEND CON LA NUEVA RUTA ---
+        // --- FETCH DE ASIENTOS REALES AL BACKEND CON LA RUTA LIMPIA ---
         const vueloId = parsedVuelo.api_id || parsedVuelo.id;
         if (vueloId) {
+          // AQUÍ ESTÁ LA CORRECCIÓN EXACTA QUE PIDIÓ BRIAN (Sin el "?vuelo_id="):
           fetch(`https://seal-app-u4egd.ondigitalocean.app/api/reservas/verificar/${vueloId}/`)
-            .then(res => res.json())
+            .then(res => {
+              if (!res.ok) throw new Error("Error en la respuesta del servidor");
+              return res.json();
+            })
             .then(data => {
-              if (data.asientos_ocupados) {
+              // Si el backend nos responde con el arreglo, lo guardamos en el estado
+              if (data.asientos_ocupados && Array.isArray(data.asientos_ocupados)) {
                 setAsientosOcupadosBackend(data.asientos_ocupados);
               }
             })
