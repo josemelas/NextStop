@@ -34,8 +34,8 @@ class EstadisticasDashboard(APIView):
         ingresos_fantasmas_totales = 0
 
         for vuelo in vuelos_query:
-            if vuelo.asientos_ocupados_base:
-                cantidad_fantasmas = len([a for a in vuelo.asientos_ocupados_base.split(',') if a.strip()])
+            if vuelo.asientos_ocupados:
+                cantidad_fantasmas = len([a for a in vuelo.asientos_ocupados.split(',') if a.strip()])
                 ingresos_fantasmas_totales += (cantidad_fantasmas * vuelo.precio_base)
 
         ingresos_totales_combinados = float(ingresos_reales_totales) + float(ingresos_fantasmas_totales)
@@ -50,8 +50,8 @@ class EstadisticasDashboard(APIView):
             ingresos_fantasmas_agencia = 0
 
             for vuelo in vuelos_agencia:
-                if vuelo.asientos_ocupados_base:
-                    cantidad_fantasmas = len([a for a in vuelo.asientos_ocupados_base.split(',') if a.strip()])
+                if vuelo.asientos_ocupados:
+                    cantidad_fantasmas = len([a for a in vuelo.asientos_ocupados.split(',') if a.strip()])
                     ingresos_fantasmas_agencia += (cantidad_fantasmas * vuelo.precio_base)
 
             ingresos_agencia_combinados = float(ingresos_reales_agencia) + float(ingresos_fantasmas_agencia)
