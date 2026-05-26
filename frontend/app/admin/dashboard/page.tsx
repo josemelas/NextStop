@@ -12,7 +12,8 @@ import {
   Loader2,
   AlertCircle,
   LogOut,
-  Filter
+  Filter,
+  Activity // <-- Nuevo ícono importado
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -128,8 +129,21 @@ export default function AdminDashboard() {
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
-            <Users className="w-5 h-5" />
+            <Users className={`w-5 h-5 ${pathname === '/admin/usuarios' ? 'text-orange-500' : ''}`} />
             Gestión de Usuarios
+          </Link>
+
+          {/* NUEVO BOTÓN: MONITOREO DE VUELOS */}
+          <Link
+            href="/admin/monitoreo"
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+              pathname === '/admin/monitoreo'
+              ? 'bg-slate-800 text-white shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Activity className={`w-5 h-5 ${pathname === '/admin/monitoreo' ? 'text-orange-500' : ''}`} />
+            Monitoreo de Vuelos
           </Link>
 
           <div className="pt-6 mt-6 border-t border-slate-800 px-2">
