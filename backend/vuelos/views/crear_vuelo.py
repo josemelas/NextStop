@@ -27,7 +27,7 @@ class CrearVueloProveedor(APIView):
         fecha_salida = request.data.get('fecha_salida')
         fecha_llegada = request.data.get('fecha_llegada')
         precio_base = request.data.get('precio_base')
-        asientos = request.data.get('asientos_disponibles', 60)
+        asientos = request.data.get('asientos_disponibles', 54)
         if not all([origen, destino, fecha_salida, fecha_llegada, precio_base]):
             return Response({"error": "Faltan datos obligatorios para crear el vuelo."},
                             status=status.HTTP_400_BAD_REQUEST)
