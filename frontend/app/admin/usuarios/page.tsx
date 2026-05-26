@@ -14,7 +14,8 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
-  Lock
+  Lock,
+  Activity // <-- Nuevo ícono importado
 } from 'lucide-react';
 
 export default function GestionRolesReal() {
@@ -104,7 +105,7 @@ export default function GestionRolesReal() {
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
-            <TrendingUp className="w-5 h-5" />
+            <TrendingUp className={`w-5 h-5 ${pathname === '/admin/dashboard' ? 'text-orange-500' : ''}`} />
             Estadísticas y KPIs
           </Link>
 
@@ -118,6 +119,19 @@ export default function GestionRolesReal() {
           >
             <Users className={`w-5 h-5 ${pathname === '/admin/usuarios' ? 'text-orange-500' : ''}`} />
             Gestión de Usuarios
+          </Link>
+
+          {/* NUEVO BOTÓN: MONITOREO DE VUELOS */}
+          <Link
+            href="/admin/monitoreo"
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+              pathname === '/admin/monitoreo'
+              ? 'bg-slate-800 text-white shadow-inner'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Activity className={`w-5 h-5 ${pathname === '/admin/monitoreo' ? 'text-orange-500' : ''}`} />
+            Monitoreo de Vuelos
           </Link>
 
           <div className="pt-6 mt-6 border-t border-slate-800 px-2">
