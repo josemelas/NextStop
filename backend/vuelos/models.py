@@ -25,10 +25,22 @@ class Vuelo(models.Model):
     precio_base = models.DecimalField(max_digits=10, decimal_places=2)
     asientos_disponibles = models.IntegerField()
     asientos_ocupados = models.CharField(max_length=255, null=True, blank=True)
+    OPCIONES_ESTADO = [
+        ('A Tiempo', 'A Tiempo'),
+        ('Retrasado', 'Retrasado'),
+        ('Abordando', 'Abordando'),
+        ('Cancelado', 'Cancelado'),
+        ('Reprogramado', 'Reprogramado'),
+    ]
+    estado_vuelo = models.CharField(
+        max_length=20,
+        choices=OPCIONES_ESTADO,
+        default='A Tiempo'
+    )
 
     class Meta:
         db_table = 'vuelo'
         managed = False
     def __str__(self):
-        return (f"{self.aereolinea} - {self.codigo_vuelo} - {self.origen} - {self.destino} - {self.fecha_salida} - {self.fehca_llegada} - {self.precio_base} - "
-                f"{self.asientos_disponibles}" f"{self.asientos_ocupados}")
+        return (f"{self.aerolinea} - {self.codigo_vuelo} - {self.origen} - {self.destino} - {self.fecha_salida} - {self.fecha_llegada} - {self.precio_base} - "
+                f"{self.asientos_disponibles} - {self.asientos_ocupados} - status: {self.estado_vuelo}")
