@@ -34,7 +34,6 @@ class Migration(migrations.Migration):
                 ('fehca_llegada', models.DateTimeField()),
                 ('precio_base', models.DecimalField(decimal_places=2, max_digits=10)),
                 ('asientos_disponibles', models.IntegerField()),
-                ('creado_en', models.DateTimeField()),
                 ('Proveedor_api', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='vuelos.proveedorapi')),
             ],
         ),
