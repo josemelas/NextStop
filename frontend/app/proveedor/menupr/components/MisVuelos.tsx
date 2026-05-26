@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, PlusCircle, MoreHorizontal, Edit2, Trash2, Loader2, PlaneTakeoff } from 'lucide-react';
+import { Search, PlusCircle, MoreHorizontal, Edit2, Trash2, Loader2, Clock, AlertTriangle } from 'lucide-react';
 
 export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, setActiveItem: (item: string) => void }) {
   const [vuelos, setVuelos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingEstado, setLoadingEstado] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("Todos los Estados");
   const [menuAbiertoId, setMenuAbiertoId] = useState<string | null>(null);
@@ -18,12 +19,10 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
 
   const isPastDate = (fechaStr: string) => {
     if (!fechaStr || fechaStr === "Sin fecha") return false;
-
     const meses: Record<string, number> = {
       "ene": 0, "feb": 1, "mar": 2, "abr": 3, "may": 4, "jun": 5,
       "jul": 6, "ago": 7, "sep": 8, "oct": 9, "nov": 10, "dic": 11
     };
-
     try {
       const parts = fechaStr.toLowerCase().replace(/[.,]/g, '').split(/\s+/);
       if (parts.length >= 3) {
@@ -39,7 +38,6 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
           return vueloDate < today;
         }
       }
-
       const parsed = new Date(fechaStr);
       if (!isNaN(parsed.getTime())) {
         const today = new Date();
@@ -52,7 +50,7 @@ export default function MisVuelos({ userInfo, setActiveItem }: { userInfo: any, 
     return false;
   };
 
-const cargarVuelos = async () => {
+  const cargarVuelos = async () => {
     setLoading(true);
     try {
       const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/listar/?id_proveedor=${userInfo.id_proveedor}`);
@@ -60,7 +58,8 @@ const cargarVuelos = async () => {
         const data = await res.json();
         const vuelosActualizados = data.map((v: any) => ({
           ...v,
-          disponibilidad: isPastDate(v.fecha_salida) ? "Finalizado" : v.disponibilidad
+          disponibilidad: isPastDate(v.fecha_salida) ? "Finalizado" : v.disponibilidad,
+          estado_vuelo: v.estado_vuelo || "A Tiempo" // Aseguramos un estado por defecto
         }));
         setVuelos(vuelosActualizados);
       }
@@ -83,18 +82,57 @@ const cargarVuelos = async () => {
     }
   };
 
+  // NUEVA FUNCIÓN: Actualizar el estado operativo en tiempo real
+  const handleActualizarEstado = async (apiId: string, nuevoEstado: string) => {
+    setLoadingEstado(apiId);
+    try {
+      const res = await fetch(`https://seal-app-u4egd.ondigitalocean.app/api/vuelos/actualizar-estado/${apiId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estado_vuelo: nuevoEstado,
+          usuario_id: userInfo.id
+        })
+      });
+
+      if (res.ok) {
+        // Actualizamos el estado localmente para no tener que recargar toda la tabla
+        setVuelos(prev => prev.map(v => v.api_id === apiId ? { ...v, estado_vuelo: nuevoEstado } : v));
+      } else {
+        const data = await res.json();
+        alert(`Error: ${data.error}`);
+      }
+    } catch (e) {
+      alert("Error de conexión al actualizar el estado.");
+    } finally {
+      setLoadingEstado(null);
+    }
+  };
+
   const filtrados = vuelos.filter(v => {
     const coincideTxt = (v.destino_completo || "").toLowerCase().includes(search.toLowerCase()) || (v.origen_completo || "").toLowerCase().includes(search.toLowerCase());
     const coincideEst = filtroEstado === "Todos los Estados" || v.disponibilidad === filtroEstado;
     return coincideTxt && coincideEst;
   });
 
+  // Función para darle color al estado del vuelo
+  const getColorEstadoOperativo = (estado: string) => {
+    switch (estado) {
+      case "A Tiempo": return "bg-green-100 text-green-700 border-green-200";
+      case "Retrasado": return "bg-amber-100 text-amber-700 border-amber-200";
+      case "Abordando": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Cancelado": return "bg-red-100 text-red-700 border-red-200";
+      case "Reprogramado": return "bg-purple-100 text-purple-700 border-purple-200";
+      default: return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
   return (
     <div className="space-y-8" onClick={() => setMenuAbiertoId(null)}>
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Mis Vuelos</h2>
-          <p className="text-slate-500 font-medium mt-1">Gestiona las rutas y disponibilidad de tu catálogo.</p>
+          <p className="text-slate-500 font-medium mt-1">Gestiona las rutas, disponibilidad y estado operativo.</p>
         </div>
         <button
           onClick={() => {
@@ -128,18 +166,19 @@ const cargarVuelos = async () => {
             <thead>
               <tr className="border-b border-slate-100 text-[11px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="p-4">Origen / Destino</th>
-                <th className="p-4">Precio Base</th>
                 <th className="p-4">Fecha Salida</th>
-                <th className="p-4 text-center">Disponibilidad</th>
+                <th className="p-4 text-center">Boletos</th>
+                <th className="p-4 text-center">Estado Operativo</th>
                 <th className="p-4 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-sm font-semibold">
               {filtrados.map((v) => {
-                // Lógica de colores optimizada sin el estado Agotado
                 let badgeColor = "bg-green-100 text-green-700";
                 if (v.disponibilidad === "Limitado") badgeColor = "bg-orange-100 text-orange-700";
                 if (v.disponibilidad === "Finalizado") badgeColor = "bg-slate-100 text-slate-500 border border-slate-200";
+
+                const isVueloFinalizado = v.disponibilidad === "Finalizado";
 
                 return (
                   <tr key={v.api_id} className="hover:bg-slate-50/50 transition-colors">
@@ -149,13 +188,36 @@ const cargarVuelos = async () => {
                         <span className="text-xs font-bold text-slate-400">Desde {v.origen_completo}</span>
                       </div>
                     </td>
-                    <td className="p-4 font-black">${v.precio.toLocaleString()}</td>
-                    <td className="p-4 text-slate-500">{v.fecha_salida}</td>
+                    <td className="p-4 text-slate-500">
+                      {v.fecha_salida} <br/>
+                      <span className="text-xs text-slate-400">${v.precio?.toLocaleString()} MXN</span>
+                    </td>
                     <td className="p-4 text-center">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${badgeColor}`}>
                         {v.disponibilidad}
                       </span>
                     </td>
+
+                    {/* COLUMNA NUEVA: ESTADO OPERATIVO CON SELECTOR */}
+                    <td className="p-4 text-center">
+                      {loadingEstado === v.api_id ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-slate-400 mx-auto" />
+                      ) : (
+                        <select
+                          value={v.estado_vuelo || "A Tiempo"}
+                          onChange={(e) => handleActualizarEstado(v.api_id, e.target.value)}
+                          disabled={isVueloFinalizado}
+                          className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border outline-none cursor-pointer text-center appearance-none ${getColorEstadoOperativo(v.estado_vuelo || "A Tiempo")} ${isVueloFinalizado ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <option value="A Tiempo">A Tiempo</option>
+                          <option value="Abordando">Abordando</option>
+                          <option value="Retrasado">Retrasado</option>
+                          <option value="Reprogramado">Reprogramado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
+                      )}
+                    </td>
+
                     <td className="p-4 text-center relative" onClick={(e) => e.stopPropagation()}>
                       <button onClick={() => setMenuAbiertoId(menuAbiertoId === v.api_id ? null : v.api_id)} className="p-2 text-slate-400 hover:text-slate-900 bg-transparent border-none cursor-pointer"><MoreHorizontal className="w-5 h-5" /></button>
                       {menuAbiertoId === v.api_id && (
