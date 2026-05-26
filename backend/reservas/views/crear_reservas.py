@@ -6,13 +6,12 @@ import uuid
 from vuelos.models import Vuelo
 from reservas.models import Reserva
 from favoritos.models import Favorito
-
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from apis_externas.models import Aeropuertos
-
+from django.utils import timezone
 
 class CrearReserva(APIView):
     def post(self, request):
@@ -67,7 +66,8 @@ class CrearReserva(APIView):
                     estado_pago='PAGADO',
                     cantidad_pasajeros=pasajeros,
                     asiento_asignado=asientos,
-                    nombres_pasajeros=nombres_a_guardar
+                    nombres_pasajeros=nombres_a_guardar,
+                    fecha_transaccion = timezone.now()
                 )
                 try:
                     Favorito.objects.filter(
