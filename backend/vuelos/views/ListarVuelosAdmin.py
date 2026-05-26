@@ -7,7 +7,7 @@ from apis_externas.models import Aeropuertos
 class ListarVuelosAdmin(APIView):
     permission_classes = []
     def get(self, request):
-        vuelos = Vuelo.objects.all().order_by('-id')
+        vuelos = Vuelo.objects.all().order_by('-id_vuelo')
         codigos_iata = set()
         for v in vuelos:
             if v.origen: codigos_iata.add(v.origen)
