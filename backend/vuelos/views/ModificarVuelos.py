@@ -41,33 +41,32 @@ class ModificarVuelos(APIView):
 
             if nuevo_precio is not None:
                 vuelo.precio_base = round(float(nuevo_precio), 2)
-            if nuevos_asientos_bloquear is not None:
+                if nuevos_asientos_bloquear is not None:
 
-                fantasmas_viejos = [a.strip() for a in
-                                    vuelo.asientos_ocupados.split(',')] if vuelo.asientos_ocupados else []
-                cantidad_vieja = len([a for a in fantasmas_viejos if a])
+                    fantasmas_viejos = [a.strip() for a in
+                                        vuelo.asientos_ocupados.split(',')] if vuelo.asientos_ocupados else []
+                    cantidad_vieja = len([a for a in fantasmas_viejos if a])
 
-                reservas_reales = Reserva.objects.filter(id_vuelo=vuelo, estado_pago='PAGADO')
-                asientos_reales = []
-                for r in reservas_reales:
-                    if r.asiento_asignado:
-                        asientos_reales.extend([a.strip() for a in r.asiento_asignado.split(',') if a.strip()])
+                    seleccionados_front = [a.strip() for a in
+                                           nuevos_asientos_bloquear.split(',')] if nuevos_asientos_bloquear else []
 
-                lista_bruta_front = [a.strip() for a in
-                                     nuevos_asientos_bloquear.split(',')] if nuevos_asientos_bloquear else []
-                fantasmas_nuevos = [a for a in lista_bruta_front if a and a not in asientos_reales]
-                cantidad_nueva = len(fantasmas_nuevos)
+                    lista_combinada = list(set(fantasmas_viejos + seleccionados_front))
+                    cantidad_nueva = len(lista_combinada)
 
-                diferencia = cantidad_nueva - cantidad_vieja
+                    diferencia = cantidad_nueva - cantidad_vieja
 
-                vuelo.asientos_disponibles -= diferencia
+                    vuelo.asientos_disponibles -= diferencia
 
-                if vuelo.asientos_disponibles < 0:
-                    vuelo.asientos_disponibles = 0
+                    if vuelo.asientos_disponibles < 0:
+                        vuelo.asientos_disponibles = 0
 
-                vuelo.asientos_ocupados = ", ".join(fantasmas_nuevos)
+                    capacidad_maxima = 60
+                    if vuelo.asientos_disponibles > capacidad_maxima:
+                        vuelo.asientos_disponibles = capacidad_maxima
 
-            vuelo.save()
+                    vuelo.asientos_ocupados = ", ".join(lista_combinada)
+
+                vuelo.save()
 
             return Response({
                 "mensaje": f"El vuelo {vuelo.codigo_vuelo} ha sido actualizado con éxito.",
