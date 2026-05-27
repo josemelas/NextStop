@@ -10,6 +10,14 @@ from django.conf import settings
 from usuarios.models import Usuario
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+class GeneradorTokenPersonalizado(PasswordResetTokenGenerator):
+    def _make_hash_value(self, user, timestamp):
+        # Usamos password_hash para que el token se invalide en cuanto cambie la contraseña
+        return f"{user.pk}{user.password_hash}{timestamp}"
+
+generador_token = GeneradorTokenPersonalizado()
 
 class SolicitarRestablecimientoPassword(APIView):
     permission_classes = [AllowAny]
@@ -22,8 +30,7 @@ class SolicitarRestablecimientoPassword(APIView):
 
         try:
             usuario = Usuario.objects.get(email=email)
-            token_generator = PasswordResetTokenGenerator()
-            token = token_generator.make_token(usuario)
+            token = generador_token.make_token(usuario)
             uid = urlsafe_base64_encode(force_bytes(usuario.pk))
             enlace_frontend = f"https://seal-app-u4egd.ondigitalocean.app/recuperar-password?uid={uid}&token={token}"
             contexto = {
@@ -65,11 +72,10 @@ class ConfirmarRestablecimientoPassword(APIView):
             uid = force_str(urlsafe_base64_decode(uid_b64))
             usuario = Usuario.objects.get(pk=uid)
 
-            token_generator = PasswordResetTokenGenerator()
-            if not token_generator.check_token(usuario, token):
+            if not generador_token.check_token(usuario, token):
                 return Response({"error": "El enlace es inválido o ya expiró."}, status=status.HTTP_400_BAD_REQUEST)
-
-            usuario.set_password(nueva_password)
+            from django.contrib.auth.hashers import make_password
+            usuario.password_hash = make_password(nueva_password)
             usuario.save()
 
             return Response({"mensaje": "¡Tu contraseña ha sido actualizada correctamente!"}, status=status.HTTP_200_OK)
