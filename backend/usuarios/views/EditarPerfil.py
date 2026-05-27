@@ -32,8 +32,8 @@ class EditarPerfil(APIView):
         data = request.data
         print(f"----> DATOS RECIBIDOS DEL FRONT: {data}")
 
-        nueva_password = data.get('nueva_password')
-        password_actual = data.get('password_actual')
+        nueva_password = data.get('password') or data.get('nueva_password')
+        password_actual = data.get('password_actual') or data.get('oldPassword')
 
         if nueva_password:
             if password_actual:
@@ -41,6 +41,7 @@ class EditarPerfil(APIView):
                     return Response({"detail": "La contraseña actual es incorrecta."}, status=400)
 
             usuario.password_hash = make_password(nueva_password)
+            print("----> ¡CONTRASEÑA ENCRIPTADA Y GUARDADA CON ÉXITO!")
 
         if 'nombre' in data:
             usuario.nombre = data.get('nombre')
