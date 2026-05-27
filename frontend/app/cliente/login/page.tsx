@@ -83,7 +83,7 @@ export default function ClientLoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between px-1">
                 <label className="text-sm font-semibold text-slate-700">Contraseña</label>
-                <Link href="/recuperar-password" className="text-sm font-bold text-orange-500 hover:underline">
+                <Link href="/cliente/recuperar" className="text-sm font-bold text-orange-500 hover:underline">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>

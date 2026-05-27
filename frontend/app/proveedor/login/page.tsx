@@ -97,7 +97,7 @@ export default function ProviderLoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between px-1">
                 <label className="text-sm font-semibold text-slate-700">Contraseña</label>
-                <Link href="/recuperar-password" className="text-sm font-bold text-stop-navy hover:underline">
+                <Link href="/proveedor/recuperar" className="text-sm font-bold text-stop-navy hover:underline">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
