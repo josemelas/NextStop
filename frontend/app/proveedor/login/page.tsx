@@ -5,7 +5,7 @@ import { Building2, ArrowLeft, Lock, Mail, AlertCircle, Eye, EyeOff, Loader2 } f
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function ProviderLogin() {
+export default function ProviderLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -95,8 +95,12 @@ export default function ProviderLogin() {
             </div>
 
             <div className="space-y-2">
-              {/* Etiqueta de contraseña sin el link de olvidar clave */}
-              <label className="text-sm font-semibold text-slate-700 px-1">Contraseña</label>
+              <div className="flex items-center justify-between px-1">
+                <label className="text-sm font-semibold text-slate-700">Contraseña</label>
+                <Link href="/recuperar-password" className="text-sm font-bold text-stop-navy hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input

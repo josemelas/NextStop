@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/authService';
 
-export default function ClientRegister() {
+export default function ClientRegisterPage() {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -18,9 +18,42 @@ export default function ClientRegister() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  // Validación en tiempo real para el nombre (solo letras y límite de 50 caracteres)
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(val) && val.length <= 50) {
+      setNombre(val);
+    }
+  };
+
+  // Validación en tiempo real para el teléfono (solo números y formato XXX-XXX-XXXX)
+  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, ''); // Elimina todo lo que no sea número
+    if (raw.length > 10) raw = raw.slice(0, 10); // Límite de 10 dígitos
+
+    let formatted = raw;
+    if (raw.length > 6) {
+      formatted = `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
+    } else if (raw.length > 3) {
+      formatted = `${raw.slice(0, 3)}-${raw.slice(3)}`;
+    }
+    setTelefono(formatted);
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validaciones estrictas antes de enviar al backend
+    if (!email.includes('@')) {
+      setError("El correo electrónico debe contener un '@'.");
+      return;
+    }
+
+    if (telefono.length !== 12) { // 10 dígitos + 2 guiones
+      setError("El número de teléfono debe estar completo (XXX-XXX-XXXX).");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
@@ -30,13 +63,12 @@ export default function ClientRegister() {
     setIsLoading(true);
 
     try {
-      // Modificación: Agregamos recaptcha_token exigido por el backend de Brian
       const data = await authService.registrar({
         nombre,
         email,
         telefono,
         password,
-        recaptcha_token: "fake-token" // Bypass del CAPTCHA para desarrollo
+        recaptcha_token: "fake-token"
       });
 
       if (data && data.mensaje) {
@@ -51,7 +83,7 @@ export default function ClientRegister() {
         setError(errorMsg);
       }
     } catch (err) {
-      setError("Error crítico: No hay conexión con el servidor de NextStop.");
+      setError("Error crítico: No hay conexión con el servidor.");
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +132,7 @@ export default function ClientRegister() {
                     name="nombre"
                     type="text"
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
+                    onChange={handleNombreChange}
                     placeholder="Tu nombre completo"
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
                     required
@@ -130,10 +162,10 @@ export default function ClientRegister() {
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     name="telefono"
-                    type="tel"
+                    type="text"
                     value={telefono}
-                    onChange={(e) => setTelefono(e.target.value)}
-                    placeholder="Ingresa numero"
+                    onChange={handleTelefonoChange}
+                    placeholder="XXX-XXX-XXXX"
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
                     required
                   />

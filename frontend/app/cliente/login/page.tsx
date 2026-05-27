@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/authService';
 
-export default function ClientLogin() {
+export default function ClientLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,18 +20,15 @@ export default function ClientLogin() {
     setIsLoading(true);
 
     try {
-      // 1. Modificación: Pasamos "cliente" como tercer argumento para el backend de Brian
       const { ok, data } = await authService.login(email, password, "cliente");
 
       if (ok) {
         console.log("Datos recibidos del backend:", data.usuario);
 
-        // 2. Guardamos token, datos y la etiqueta del portal para el Guard de seguridad
         localStorage.setItem('user_token', data.token.access);
         localStorage.setItem('user_data', JSON.stringify(data.usuario));
         localStorage.setItem('user_portal', "cliente");
 
-        // Redirección al Dashboard Principal
         router.push('/cliente/menupr');
       } else {
         setError(data.error || "Credenciales incorrectas");
@@ -84,7 +81,12 @@ export default function ClientLogin() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Contraseña</label>
+              <div className="flex items-center justify-between px-1">
+                <label className="text-sm font-semibold text-slate-700">Contraseña</label>
+                <Link href="/recuperar-password" className="text-sm font-bold text-orange-500 hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
