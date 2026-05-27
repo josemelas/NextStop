@@ -9,6 +9,7 @@ from .views.GestionarUsuarios import GestionUsuariosAdminView
 from .views.PanelAdmin import EstadisticasDashboard
 from .views.PanelProveedor import DashboardProveedor
 from .views.EnvioContacto import EnviarMensajeContacto
+from.views.RestablecerContraseña import SolicitarRestablecimientoPassword, ConfirmarRestablecimientoPassword
 
 urlpatterns = [
     path('registrar/', RegistrarUsuario.as_view(), name='registrar_usuario'),
@@ -24,4 +25,6 @@ urlpatterns = [
     path('admin/dashboard/', EstadisticasDashboard.as_view(), name='admin_dashboard'),
     path('proveedor/dashboard/', DashboardProveedor.as_view(), name='proveedor_dashboard'),
     path('contacto/', EnviarMensajeContacto.as_view(), name='enviar_mensaje_contacto'),
+    path('restablecer/contraseña/', SolicitarRestablecimientoPassword.as_view(), name='solicitar_restablecimiento_password'),
+    path('password/confirmar/', ConfirmarRestablecimientoPassword.as_view(), name='confirmar_password'),
 ]
