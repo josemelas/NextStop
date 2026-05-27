@@ -13,7 +13,6 @@ from django.utils.html import strip_tags
 from apis_externas.models import Aeropuertos
 from django.utils import timezone
 
-
 class CrearReserva(APIView):
     def post(self, request):
         api_id_vuelo = request.data.get('vuelo_id')
@@ -30,7 +29,7 @@ class CrearReserva(APIView):
             with transaction.atomic():
                 vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
 
-                estado_actual = getattr(vuelo, 'estado_vuelo', 'A Tiempo', 'Retrasado')
+                estado_actual = getattr(vuelo, 'estado_vuelo', 'A Tiempo')
                 estados_bloqueados = ['Cancelado', 'Abordando']
 
                 if estado_actual in estados_bloqueados:
