@@ -75,12 +75,16 @@ export const authService = {
     }
   },
 
-  confirmarRecuperacion: async (uid: string, token: string, nueva_password: string) => {
+confirmarRecuperacion: async (uid: string, token: string, nueva_password: string) => {
     try {
       const res = await fetch(`${API_URL}/password/confirmar/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, token, nueva_password }),
+        body: JSON.stringify({
+           uid: uid,
+           token: token,
+           nueva_password: nueva_password // ESTE ES EL NOMBRE EXACTO QUE PIDIÓ BRIAN
+        }),
       });
       return await res.json();
     } catch (error) {
