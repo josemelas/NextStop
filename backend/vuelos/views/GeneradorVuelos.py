@@ -75,7 +75,14 @@ class GeneradorVuelos(APIView):
         dias_antelacion = (fecha_vuelo - date.today()).days
         multiplicador_tiempo = 1.5 if dias_antelacion < 7 else (0.9 if dias_antelacion > 30 else 1.0)
 
-        vuelos_bd = Vuelo.objects.filter(origen=origen, destino=destino, fecha_salida__date=fecha_vuelo)
+        vuelos_bd = Vuelo.objects.filter(
+            origen=origen,
+            destino=destino,
+            fecha_salida__date=fecha_vuelo
+        ).exclude(
+            estado_vuelo__in=['Cancelado', 'Abordando']
+        )
+
         if vuelos_bd.exists():
             return self.enviar_formato_frontend(vuelos_bd)
 
@@ -97,8 +104,7 @@ class GeneradorVuelos(APIView):
             obj_llegada = datetime.strptime(f"{fecha_salida_str} {hora_llegada_int:02d}:00:00", "%Y-%m-%d %H:%M:%S")
 
             precio_simulado = random.choice([1500, 2200, 3000, 4500])
-            precio_final = (precio_simulado * multiplicador_distancia * multiplicador_tiempo) + random.randint(-200,600)
-
+            precio_final = (precio_simulado * multiplicador_distancia * multiplicador_tiempo) + random.randint(-200, 600)
             todos_los_asientos = [f"{fila}{letra}" for fila in range(1, 10) for letra in ['A', 'B', 'C', 'D', 'E', 'F']]
             cantidad_fantasmas = random.randint(8, 22)
             asientos_fantasma = random.sample(todos_los_asientos, cantidad_fantasmas)
