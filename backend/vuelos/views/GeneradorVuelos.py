@@ -78,7 +78,8 @@ class GeneradorVuelos(APIView):
         vuelos_bd = Vuelo.objects.filter(
             origen=origen,
             destino=destino,
-            fecha_salida__date=fecha_vuelo
+            fecha_salida__date=fecha_vuelo,
+            asientos_disponibles__gt=0
         ).exclude(
             estado_vuelo__in=['Cancelado', 'Abordando']
         )
