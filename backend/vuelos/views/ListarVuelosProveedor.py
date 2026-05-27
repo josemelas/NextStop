@@ -31,20 +31,26 @@ class ListarVuelos(APIView):
         lista_vuelos_tabla = []
 
         for v in vuelos:
-            if v.asientos_disponibles <= 0:
+            cantidad_bloqueados = 0
+            if hasattr(v, 'asientos_ocupados') and v.asientos_ocupados:
+                cantidad_bloqueados = len([a for a in v.asientos_ocupados.split(',') if a.strip()])
+
+            asientos_reales_restantes = v.asientos_disponibles - cantidad_bloqueados
+
+            if asientos_reales_restantes < 0:
+                asientos_reales_restantes = 0
+
+            if asientos_reales_restantes <= 0:
                 estado_disponibilidad = "Agotado"
-            elif v.asientos_disponibles <= 20:
+            elif asientos_reales_restantes <= 20:
                 estado_disponibilidad = "Limitado"
             else:
                 estado_disponibilidad = "Disponible"
-
             fecha_formateada = "Sin fecha"
             if v.fecha_salida:
                 fecha_formateada = v.fecha_salida.strftime("%d %b, %Y")
-
             nombre_origen = mapa_aeropuertos.get(v.origen, v.origen)
             nombre_destino = mapa_aeropuertos.get(v.destino, v.destino)
-
             lista_vuelos_tabla.append({
                 "api_id": v.api_id,
                 "id_vuelo": v.id_vuelo,
@@ -54,7 +60,7 @@ class ListarVuelos(APIView):
                 "precio": float(v.precio_base) if v.precio_base else 0.0,
                 "fecha_salida": fecha_formateada,
                 "disponibilidad": estado_disponibilidad,
-                "asientos_restantes": v.asientos_disponibles,
+                "asientos_restantes": asientos_reales_restantes,
                 "estado_vuelo": getattr(v, 'estado_vuelo', 'A Tiempo')
             })
 
