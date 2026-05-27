@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización de tu Vuelo - NextStop</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 20px;">
+
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+
+        <div style="background-color: {% if nuevo_estado == 'Cancelado' %}#ef4444{% else %}#f59e0b{% endif %}; padding: 25px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 26px; letter-spacing: 1px;">NextStop - Aviso Importante</h1>
+        </div>
+
+        <div style="padding: 35px; color: #333333; line-height: 1.6;">
+            <p style="font-size: 16px;">Hola, <strong>{{ nombre_usuario }}</strong>:</p>
+            <p style="font-size: 16px;">Te informamos que la aerolínea ha actualizado el estado de tu vuelo con código de confirmación <strong>{{ codigo_confirmacion }}</strong>.</p>
+
+            <div style="background-color: #f9fafb; border-left: 4px solid {% if nuevo_estado == 'Cancelado' %}#ef4444{% else %}#f59e0b{% endif %}; padding: 20px; margin: 25px 0; border-radius: 4px;">
+                <p style="margin: 0 0 10px 0; font-size: 18px;">Nuevo Estado:
+                    <strong style="color: {% if nuevo_estado == 'Cancelado' %}#ef4444{% else %}#f59e0b{% endif %}; text-transform: uppercase;">
+                        {{ nuevo_estado }}
+                    </strong>
+                </p>
+                <p style="margin: 0; font-size: 15px; color: #555555;">
+                    <strong>Vuelo:</strong> {{ codigo_vuelo }}<br>
+                    <strong>Ruta:</strong> {{ origen }} ➡️ {{ destino }}<br>
+                    <strong>Fecha/Hora programada:</strong> {{ fecha_salida }}
+                </p>
+            </div>
+
+            {% if nuevo_estado == 'Cancelado' %}
+                <p style="font-size: 15px;">Lamentamos profundamente los inconvenientes que esto pueda causarte. Por favor, ponte en contacto con el soporte de la aerolínea o accede a tu panel de usuario para conocer las opciones de reembolso o reubicación de tu boleto sin costo adicional.</p>
+            {% elif nuevo_estado == 'Retrasado' %}
+                <p style="font-size: 15px;">El vuelo presenta una demora en su salida. Te recomendamos mantenerte atento a las pantallas del aeropuerto y a tu panel de NextStop para seguir el estatus de la nueva hora de abordaje en tiempo real.</p>
+            {% elif nuevo_estado == 'Reprogramado' %}
+                <p style="font-size: 15px;">Tu vuelo ha sido agendado para un nuevo horario disponible. Los detalles de tu itinerario actualizado ya se encuentran reflejados y vigentes dentro de tu sección de viajes en nuestra plataforma.</p>
+            {% endif %}
+
+            <p style="margin-top: 35px; font-size: 14px; color: #888888; border-top: 1px solid #eeeeee; padding-top: 20px;">
+                Si tienes alguna duda técnica o requieres asistencia inmediata, nuestro equipo de soporte está disponible a través de la plataforma web.
+            </p>
+        </div>
+
+        <div style="background-color: #f4f7f6; padding: 20px; text-align: center; font-size: 12px; color: #999999;">
+            &copy; 2026 NextStop. Todos los derechos reservados.<br>
+            Este es un canal de notificaciones operacionales automáticas, por favor no respondas a este mensaje.
+        </div>
+
+    </div>
+
+</body>
+</html>
