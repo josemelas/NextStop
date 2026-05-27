@@ -7,28 +7,23 @@ from usuarios.models import Usuario
 from datetime import datetime
 from django.utils.timezone import make_aware
 
-
 class ModificarVuelos(APIView):
     permission_classes = [AllowAny]
-
     def put(self, request):
         api_id_vuelo = request.data.get('vuelo_id')
         id_usuario = request.data.get('usuario_id')
-
         nueva_fecha_salida = request.data.get('fecha_salida')
         nueva_fecha_llegada = request.data.get('fecha_llegada')
         nuevo_precio = request.data.get('precio_base')
-        nuevos_asientos = request.data.get('asientos_disponibles')
+        nuevos_asientos_disponibles = request.data.get('asientos_disponibles')
+        nuevos_asientos_bloquear = request.data.get('asientos_ocupados')
 
         if not api_id_vuelo or not id_usuario:
             return Response({"error": "Faltan parámetros obligatorios (vuelo_id o usuario_id)"},
                             status=status.HTTP_400_BAD_REQUEST)
-
         try:
             usuario = Usuario.objects.get(id=id_usuario)
-
             id_proveedor_usuario = usuario.id_proveedor_id
-
             if not id_proveedor_usuario:
                 return Response({"error": "Acceso denegado: Tu cuenta no es de empresa"},
                                 status=status.HTTP_403_FORBIDDEN)
@@ -49,8 +44,19 @@ class ModificarVuelos(APIView):
             if nuevo_precio is not None:
                 vuelo.precio_base = round(float(nuevo_precio), 2)
 
-            if nuevos_asientos is not None:
-                vuelo.asientos_disponibles = int(nuevos_asientos)
+            if nuevos_asientos_disponibles is not None:
+                vuelo.asientos_disponibles = int(nuevos_asientos_disponibles)
+
+            if nuevos_asientos_bloquear:
+                asientos_actuales = [a.strip() for a in
+                                     vuelo.asientos_ocupados.split(',')] if vuelo.asientos_ocupados else []
+
+                asientos_nuevos = [a.strip() for a in
+                                   nuevos_asientos_bloquear.split(',')] if nuevos_asientos_bloquear else []
+
+                lista_combinada = list(set(asientos_actuales + asientos_nuevos))
+
+                vuelo.asientos_ocupados = ", ".join(lista_combinada)
 
             vuelo.save()
 
@@ -59,7 +65,8 @@ class ModificarVuelos(APIView):
                 "vuelo": {
                     "precio_base": str(vuelo.precio_base),
                     "asientos_disponibles": vuelo.asientos_disponibles,
-                    "fecha_salida": vuelo.fecha_salida.strftime("%Y-%m-%d %H:%M:%S")
+                    "fecha_salida": vuelo.fecha_salida.strftime("%Y-%m-%d %H:%M:%S"),
+                    "asientos_ocupados": vuelo.asientos_ocupados  
                 }
             }, status=status.HTTP_200_OK)
 
