@@ -13,6 +13,7 @@ from django.utils.html import strip_tags
 from apis_externas.models import Aeropuertos
 from django.utils import timezone
 
+
 class CrearReserva(APIView):
     def post(self, request):
         api_id_vuelo = request.data.get('vuelo_id')
@@ -28,13 +29,25 @@ class CrearReserva(APIView):
         try:
             with transaction.atomic():
                 vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
+
+                estado_actual = getattr(vuelo, 'estado_vuelo', 'A Tiempo', 'Retrasado')
+                estados_bloqueados = ['Cancelado', 'Abordando']
+
+                if estado_actual in estados_bloqueados:
+                    return Response(
+                        {
+                            "error": f"Operación rechazada: No se pueden comprar boletos porque el vuelo está {estado_actual}."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 from usuarios.models import Usuario
                 usuario_comprador = Usuario.objects.get(id=id_usuario)
+
                 nuevos_nombres = []
                 for pasajero in datos_pasajeros:
                     nombre_extra = pasajero.get('nombre')
                     if nombre_extra:
                         nuevos_nombres.append(nombre_extra.strip().lower())
+
                 reservas_vuelo = Reserva.objects.filter(id_vuelo=vuelo, estado_pago='PAGADO')
                 nombres_ya_registrados = []
                 for r in reservas_vuelo:
@@ -48,6 +61,7 @@ class CrearReserva(APIView):
                             {"error": f"El pasajero '{nombre.title()}' ya tiene un boleto comprado para este vuelo."},
                             status=status.HTTP_400_BAD_REQUEST
                         )
+
                 if vuelo.asientos_disponibles < pasajeros:
                     return Response({"error": "El vuelo ya no tiene suficientes asientos disponibles"},
                                     status=status.HTTP_400_BAD_REQUEST)
@@ -67,8 +81,9 @@ class CrearReserva(APIView):
                     cantidad_pasajeros=pasajeros,
                     asiento_asignado=asientos,
                     nombres_pasajeros=nombres_a_guardar,
-                    fecha_transaccion = timezone.now()
+                    fecha_transaccion=timezone.now()
                 )
+
                 try:
                     Favorito.objects.filter(
                         id_usuario_id=id_usuario,
@@ -77,6 +92,7 @@ class CrearReserva(APIView):
                     ).delete()
                 except Exception as e:
                     print(f"Nota: Fallo silencioso al borrar favorito: {str(e)}")
+
                 try:
                     usuario_comprador = reserva.id_usuario
                     pasajeros_a_notificar = []
