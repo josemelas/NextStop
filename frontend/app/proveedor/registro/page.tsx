@@ -5,13 +5,12 @@ import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function RegisterProvider() {
+export default function ProviderRegisterPage() {
   const router = useRouter();
 
-  // Estados para el formulario
   const [formData, setFormData] = useState({
     nombre_empresa: '',
-    nombre: '', // Nombre del administrador
+    nombre: '',
     email: '',
     telefono: '',
     pais: '',
@@ -23,21 +22,58 @@ export default function RegisterProvider() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
+  // Manejador interceptor para validaciones en tiempo real
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Validación: Límite de caracteres para la empresa
+    if (name === 'nombre_empresa') {
+      if (value.length > 50) return;
+    }
+
+    // Validación: El Admin solo acepta letras y espacios, límite de 50
+    if (name === 'nombre') {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(value) || value.length > 50) return;
+    }
+
+    // Validación: Formato de teléfono XXX-XXX-XXXX
+    if (name === 'telefono') {
+      let raw = value.replace(/\D/g, '');
+      if (raw.length > 10) raw = raw.slice(0, 10);
+
+      let formatted = raw;
+      if (raw.length > 6) {
+        formatted = `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
+      } else if (raw.length > 3) {
+        formatted = `${raw.slice(0, 3)}-${raw.slice(3)}`;
+      }
+
+      setFormData({ ...formData, [name]: formatted });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMsg({ type: '', text: '' });
 
-    // Validaciones básicas
+    // Validaciones explícitas antes del request
+    if (!formData.email.includes('@')) {
+      return setStatusMsg({ type: 'error', text: "El correo electrónico debe contener un '@'." });
+    }
+
+    if (formData.telefono.length !== 12) {
+      return setStatusMsg({ type: 'error', text: 'El teléfono debe estar completo (XXX-XXX-XXXX).' });
+    }
+
     if (formData.password !== formData.confirmPassword) {
-      return setStatusMsg({ type: 'error', text: 'Las contraseñas no coinciden' });
+      return setStatusMsg({ type: 'error', text: 'Las contraseñas no coinciden.' });
     }
 
     if (formData.password.length < 6) {
-      return setStatusMsg({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres' });
+      return setStatusMsg({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' });
     }
 
     setLoading(true);
@@ -61,7 +97,6 @@ export default function RegisterProvider() {
 
       if (response.ok) {
         setStatusMsg({ type: 'success', text: data.mensaje });
-        // Redirigir al login después de 2 segundos
         setTimeout(() => router.push('/proveedor/login'), 2000);
       } else {
         setStatusMsg({ type: 'error', text: data.error || 'Error al registrar la agencia' });
@@ -98,27 +133,27 @@ export default function RegisterProvider() {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Nombre de la Agencia</label>
-                <input name="nombre_empresa" required type="text" onChange={handleChange} placeholder="Ej. SkyWings Travel" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
+                <input name="nombre_empresa" value={formData.nombre_empresa} required type="text" onChange={handleChange} placeholder="Ej. SkyWings Travel" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Admin de la Agencia</label>
-                <input name="nombre" required type="text" onChange={handleChange} placeholder="Nombre completo" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
+                <input name="nombre" value={formData.nombre} required type="text" onChange={handleChange} placeholder="Nombre completo" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Correo corporativo</label>
-              <input name="email" required type="email" onChange={handleChange} placeholder="contacto@agencia.com" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
+              <input name="email" value={formData.email} required type="email" onChange={handleChange} placeholder="contacto@agencia.com" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Teléfono</label>
-                <input name="telefono" required type="text" onChange={handleChange} placeholder="+52..." className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
+                <input name="telefono" value={formData.telefono} required type="text" onChange={handleChange} placeholder="XXX-XXX-XXXX" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Sede</label>
-                <select name="pais" required onChange={handleChange} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none text-slate-500 transition-all cursor-pointer font-bold text-sm">
+                <select name="pais" value={formData.pais} required onChange={handleChange} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none text-slate-500 transition-all cursor-pointer font-bold text-sm">
                   <option value="">Seleccionar país</option>
                   <option value="México">México</option>
                   <option value="España">España</option>
@@ -130,7 +165,7 @@ export default function RegisterProvider() {
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Contraseña</label>
               <div className="relative">
-                <input name="password" required type={showPassword ? "text" : "password"} onChange={handleChange} placeholder="••••••••" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
+                <input name="password" value={formData.password} required type={showPassword ? "text" : "password"} onChange={handleChange} placeholder="••••••••" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-500">
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -139,7 +174,7 @@ export default function RegisterProvider() {
 
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Confirmar</label>
-              <input name="confirmPassword" required type={showPassword ? "text" : "password"} onChange={handleChange} placeholder="Repite la contraseña" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
+              <input name="confirmPassword" value={formData.confirmPassword} required type={showPassword ? "text" : "password"} onChange={handleChange} placeholder="Repite la contraseña" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-sm" />
             </div>
 
             <button
