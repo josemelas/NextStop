@@ -40,9 +40,9 @@ class ListarVuelos(APIView):
             if asientos_reales_restantes < 0:
                 asientos_reales_restantes = 0
 
-            if asientos_reales_restantes <= 0:
+            if asientos_reales_restantes == 0:
                 estado_disponibilidad = "Agotado"
-            elif asientos_reales_restantes <= 20:
+            elif asientos_reales_restantes >= 20:
                 estado_disponibilidad = "Limitado"
             else:
                 estado_disponibilidad = "Disponible"
