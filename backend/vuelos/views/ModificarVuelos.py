@@ -4,59 +4,68 @@ from rest_framework.response import Response
 from rest_framework import status
 from vuelos.models import Vuelo
 from usuarios.models import Usuario
+from reservas.models import Reserva
 from datetime import datetime
 from django.utils.timezone import make_aware
 
+
 class ModificarVuelos(APIView):
     permission_classes = [AllowAny]
+
     def put(self, request):
         api_id_vuelo = request.data.get('vuelo_id')
         id_usuario = request.data.get('usuario_id')
+
         nueva_fecha_salida = request.data.get('fecha_salida')
         nueva_fecha_llegada = request.data.get('fecha_llegada')
         nuevo_precio = request.data.get('precio_base')
-        nuevos_asientos_disponibles = request.data.get('asientos_disponibles')
         nuevos_asientos_bloquear = request.data.get('asientos_ocupados')
 
         if not api_id_vuelo or not id_usuario:
-            return Response({"error": "Faltan parámetros obligatorios (vuelo_id o usuario_id)"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Faltan parámetros obligatorios"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             usuario = Usuario.objects.get(id=id_usuario)
-            id_proveedor_usuario = usuario.id_proveedor_id
-            if not id_proveedor_usuario:
-                return Response({"error": "Acceso denegado: Tu cuenta no es de empresa"},
-                                status=status.HTTP_403_FORBIDDEN)
+            if not usuario.id_proveedor_id:
+                return Response({"error": "Acceso denegado"}, status=status.HTTP_403_FORBIDDEN)
+
             vuelo = Vuelo.objects.get(api_id=api_id_vuelo)
-            id_proveedor_vuelo = vuelo.id_proveedor_id
-            if str(id_proveedor_vuelo) != str(id_proveedor_usuario):
-                return Response({"error": "Operación rechazada: No puedes modificar vuelos de otra aerolínea"},
-                                status=status.HTTP_403_FORBIDDEN)
+            if str(vuelo.id_proveedor_id) != str(usuario.id_proveedor_id):
+                return Response({"error": "Operación rechazada"}, status=status.HTTP_403_FORBIDDEN)
 
             if nueva_fecha_salida:
-                obj_salida = datetime.strptime(nueva_fecha_salida, "%Y-%m-%d %H:%M:%S")
-                vuelo.fecha_salida = make_aware(obj_salida)
+                vuelo.fecha_salida = make_aware(datetime.strptime(nueva_fecha_salida, "%Y-%m-%d %H:%M:%S"))
 
             if nueva_fecha_llegada:
-                obj_llegada = datetime.strptime(nueva_fecha_llegada, "%Y-%m-%d %H:%M:%S")
-                vuelo.fecha_llegada = make_aware(obj_llegada)
+                vuelo.fecha_llegada = make_aware(datetime.strptime(nueva_fecha_llegada, "%Y-%m-%d %H:%M:%S"))
 
             if nuevo_precio is not None:
                 vuelo.precio_base = round(float(nuevo_precio), 2)
+            if nuevos_asientos_bloquear is not None:
 
-            if nuevos_asientos_disponibles is not None:
-                vuelo.asientos_disponibles = int(nuevos_asientos_disponibles)
+                fantasmas_viejos = [a.strip() for a in
+                                    vuelo.asientos_ocupados.split(',')] if vuelo.asientos_ocupados else []
+                cantidad_vieja = len([a for a in fantasmas_viejos if a])
 
-            if nuevos_asientos_bloquear:
-                asientos_actuales = [a.strip() for a in
-                                     vuelo.asientos_ocupados.split(',')] if vuelo.asientos_ocupados else []
+                reservas_reales = Reserva.objects.filter(id_vuelo=vuelo, estado_pago='PAGADO')
+                asientos_reales = []
+                for r in reservas_reales:
+                    if r.asiento_asignado:
+                        asientos_reales.extend([a.strip() for a in r.asiento_asignado.split(',') if a.strip()])
 
-                asientos_nuevos = [a.strip() for a in
-                                   nuevos_asientos_bloquear.split(',')] if nuevos_asientos_bloquear else []
+                lista_bruta_front = [a.strip() for a in
+                                     nuevos_asientos_bloquear.split(',')] if nuevos_asientos_bloquear else []
+                fantasmas_nuevos = [a for a in lista_bruta_front if a and a not in asientos_reales]
+                cantidad_nueva = len(fantasmas_nuevos)
 
-                lista_combinada = list(set(asientos_actuales + asientos_nuevos))
+                diferencia = cantidad_nueva - cantidad_vieja
 
-                vuelo.asientos_ocupados = ", ".join(lista_combinada)
+                vuelo.asientos_disponibles -= diferencia
+
+                if vuelo.asientos_disponibles < 0:
+                    vuelo.asientos_disponibles = 0
+
+                vuelo.asientos_ocupados = ", ".join(fantasmas_nuevos)
 
             vuelo.save()
 
@@ -65,8 +74,7 @@ class ModificarVuelos(APIView):
                 "vuelo": {
                     "precio_base": str(vuelo.precio_base),
                     "asientos_disponibles": vuelo.asientos_disponibles,
-                    "fecha_salida": vuelo.fecha_salida.strftime("%Y-%m-%d %H:%M:%S"),
-                    "asientos_ocupados": vuelo.asientos_ocupados  
+                    "fecha_salida": vuelo.fecha_salida.strftime("%Y-%m-%d %H:%M:%S")
                 }
             }, status=status.HTTP_200_OK)
 
@@ -75,7 +83,6 @@ class ModificarVuelos(APIView):
         except Vuelo.DoesNotExist:
             return Response({"error": "El vuelo especificado no existe"}, status=status.HTTP_404_NOT_FOUND)
         except ValueError:
-            return Response({"error": "Formato de datos incorrecto (revisa las fechas o números)"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Formato de datos incorrecto"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": f"Error interno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
